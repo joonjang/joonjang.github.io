@@ -1,0 +1,173 @@
+/*start of top section*/    
+.footer{
+  position: absolute;
+  width: 100%;
+  padding: 1rem;
+  background-color: #efefef;
+  text-align: center;
+  color:black;
+}
+.weatherProj{
+     border-width: 5px;
+    border-style: solid;
+  border-color:#424242;
+    display:block;
+    width:90%;
+    height:90%;
+  display: inline-block;
+    margin: 20px 0px 0px 5%;
+  border-radius: 1%;
+  }
+
+body{
+  background:#fff;
+    }
+.anchor{
+    display: block;
+    position: relative;
+    top: -80px;
+  visibility: hidden;
+}
+
+#jumbo1{
+  padding-top:80px;
+  background:#424242;
+  color:#FAFAFA;
+}
+#hr1{
+    margin-left: 10%;
+    margin-right: calc(10% + 250px);
+    border-style: solid;
+    border-width: 1px;
+    border-color:#FAFAFA;
+}
+@media screen and (max-width: 480px){
+  #hr1{
+        margin-right: 10%;
+  }
+}
+#img{
+    border-width: 5px;
+    border-style: solid;
+    border-radius: 50%;
+  border-color:#FAFAFA;
+    display:block;
+    width:250px;
+    height:250px;
+  float:right;
+
+}
+
+/* icon for mobile */
+.navbar-toggle{
+  font-size:30px;
+
+  padding:10px 20px;
+  float:right;
+}
+/*keep mobile inline*/
+.dInline{
+  display:inline-block !important;
+
+  text-align:center;
+}
+@media screen and (max-width: 767px){
+.dInline{
+  width:32%;
+}
+}
+.navbar-nav{
+  font-size:15px;
+  padding:15px;
+}
+  #joon{
+    padding:10px 5px 5px 15px;
+    font-size:40px;
+    list-style-type:none;
+    font-family: Lobster, monospace;
+  }
+
+/*end of top section*/
+
+
+/*portfolio*/
+
+#jumbo3{
+  background:#BDBDBD;
+  
+}
+
+
+
+/* end portfolio*/
+
+/* contact me section */
+#conMe{
+  text-align:center;
+}
+.contBox{
+  font-size:30px;
+  background:none;
+  border-top:none;
+  border-right:none;
+  border-bottom:thin dotted #757575;
+  border-left:none;
+  margin:10px;
+}
+.btn{
+  color:#757575;
+  background:none;
+  border-color:#757575;
+}
+.btn:hover{
+  background:#757575;
+  border-color:#F5F5F5;
+  color:#FAFAFA;
+
+}
+#jumbo2{
+  background:#EEEEEE;
+  color:#757575;
+}
+form{
+  float:left;
+}
+.paraCont{
+  font-size:25px !important;
+  padding:15px 0px 0px 450px;
+}
+#hr2{
+    display: block;
+    margin-left: 15%;
+    margin-right: 15%;
+    border-style: solid;
+    border-width: 1px;
+    border-color:#757575;
+}
+@media screen and (max-width: 767px){
+  .paraCont{
+  font-size:20px !important;
+  padding:20px 0px 0px 0px;
+    float:left;
+}
+  .contBox{
+    width:95%;
+    float:none;
+  }
+  form{
+  float:none;
+}
+  #img{
+     border-width: 5px;
+    border-style: solid;
+    border-radius: 50%;
+  border-color:#FAFAFA;
+    display:block;
+    width:250px;
+    height:250px;
+  display: inline-block;
+    margin: 0px 15% 5px 5px;
+  }
+}
+
+/*end of contact me section */
