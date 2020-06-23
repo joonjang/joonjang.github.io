@@ -1,0 +1,99 @@
+html,
+body {
+	margin: 0;
+
+	font-family: Montserrat, sans-serif;
+	background: darkgray;
+	transition: all 0.7s;
+}
+
+body.active {
+	background: black;
+}
+
+h1 {
+	color: black;
+	transition: all 0.7s;
+}
+
+h1.active {
+	color: white;
+	transition: all 0.7s;
+}
+
+#navbar-left {
+	grid-area: navbar-left;
+	/* background: aqua; */
+	padding: 25px;
+	position: fixed;
+	font-size: 2em;
+	z-index: 1;
+
+	filter: invert(1);
+	mix-blend-mode: difference;
+
+}
+
+#navbar-right {
+	grid-area: navbar-right;
+	/* background: yellow; */
+	padding: 25px;
+	right: 0;
+	position: fixed;
+	font-size: 2em;
+	z-index: 1;
+	
+	filter: invert(1);
+	mix-blend-mode: difference;
+}
+
+#navbar-left span{
+
+	display: inline-flex;
+  }
+  
+  #navbar-left span:nth-child(even){
+	overflow: hidden;
+	transition: ease-in-out 0.5s;
+	letter-spacing: -1em;
+  }
+  
+  #navbar-left:hover span:nth-child(even){
+	letter-spacing:0;
+  }
+
+  #master-grid {
+	display: grid;
+
+	/* 	background: red; */
+
+	grid-template-columns: 10% 40% 40% 10%;
+
+	grid-template-areas:
+		
+		". main main ."
+		"footer footer footer footer";
+}
+
+  #body {
+    /* background: violet; */
+    
+        grid-area: main;
+        display: grid;
+
+    
+        grid-template-areas:
+            "start"
+            "content"
+            "contact";
+    }
+    
+    
+    #start {
+        grid-area: start;
+        font-size: 40px;
+
+        margin: auto 0 auto 0;
+    
+        	background: orange;
+    }
