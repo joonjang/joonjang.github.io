@@ -310,14 +310,24 @@ a:active {
   .photoInfo{
 	  animation: cardEntrance 500ms ease-out;
 	background-color: #333333;
+
 	color: white;
 	width: auto;
 	height: auto;
 	grid-area: codepen;
 	--stagger-delay: 100ms;
-
 	padding: 25px;
+
 	/* height: 850px; */
+}
+
+.photoInfo h2{
+	padding: 25px;
+	font-size: 4em;
+}
+
+.photoInfo p{
+	padding: 10px 50px;
 }
 
 
