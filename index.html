@@ -1,136 +1,222 @@
-
-
+<!DOCTYPE html>
 <html lang="en" >
-
 <head>
   <meta charset="UTF-8">
-  <title>Portfolio profile</title>
-  
-  
-  <link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
-<link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Lobster'>
-<link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css'>
+  <title>Joon's Online Portfolio</title>
+  <link rel="stylesheet" href="./indexStyle.css">
 
-      <link rel="stylesheet" href="css/style.css">
-
-  
 </head>
-
 <body>
+<!-- partial:index.partial.html -->
+<body id="bgtransition">
+	<div id="master-grid">
+		<div id=navbar-left onclick="location.href='#bgtransition'"; >
+			<strong>
+			<span>[J</span><span>oon Jang</span><span>]</span>
+			</strong>
+		</div>
 
-  <!-- Script for the collapsable -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<head>
-<title>Joon's Portfolio</title>
-</head> 
-<body data-spy="scroll" data-target="#navbarCollapse" data-offset="80">
+		<!-- <div id=navbar-right onclick="location.href='about.html'";>
+			<strong>
+			[About]
+			</strong>
+		</div> -->
 
-<nav class="navbar navbar-fixed-top navbar-default ">
-    <div class="container">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header ">
-            <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
-                <span class="sr-only">Toggle navigation</span>
-                <i class="fa fa-bars" aria-hidden="true"></i>
-            </button>
-            <li id="joon">Joon's Portfolio</li>
-        </div>
-        <!-- Collection of nav links and other content for toggling -->
+		<div id="body">
 
-        <div id="navbarCollapse" class="collapse navbar-collapse  ">
-            <ul class="nav navbar-nav navbar-right">
-              
-                <li class="dInline" ><a href="#about" >About</a></li>
-                <li class="dInline" ><a href="#proj">Projects</a></li>
-                <li class="dInline"><a href="#con" >Contact</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
-  
-  <a class="anchor" id="about"></a>
-<div class="jumbotron" id="jumbo1">
-    <div class="container">
-        <h1>Making Things Is Fun</h1>   
-  <div>
-      <img id="img"src="https://www.dropbox.com/s/rqgagfipskrl43n/2018-08-20%2011.32.53%201.jpg?raw=1" />
-  </div>
-        <p>Learning is fun, but mostly frustrating. University student undergoing a Bachelor of Science degree at the University of British Columbia.</p>
+			<div id="start">
+				<h1 class="textColorChange"><strong>JOON'S <br> ONLINE <br> PORTFOLIO</strong>
+			</div>
 
-      <hr id="hr1">
-      <h2 style="text-align:center">Student - Forestry - Vancouver</h2>
-  
-    </div>
-</div>
-  
-  
-<a class="anchor" id="proj"></a>
-  <div class="jumbotron" id="jumbo3">
-    <div class="container">
-    <h1>Projects</h1>
-      <P> Click an image to view the projects </p>
 
-     <div>
-        <!--        weather -->
-        <a href="https://codepen.io/joonjang/full/BdmJvX/" target="_blank" rel="noopener noreferrer">
-        <img class="weatherProj" src="https://www.dropbox.com/s/a2puyw0kuopua7b/as.png?raw=1">
-        </a>
-       <!--        quote maker -->
-        <a href="https://codepen.io/joonjang/full/RZpKwE/" target="_blank" rel="noopener noreferrer">
-        <img class="weatherProj" src="https://www.dropbox.com/s/czkhkbshz5fm4uu/as2.png?raw=1">
-        </a>
-       <!--        twitch api -->
-           <a href="https://codepen.io/joonjang/full/wrzOKx/" target="_blank" rel="noopener noreferrer">
-        <img class="weatherProj" src="https://www.dropbox.com/s/m1tkbl5fszxktc6/as3.png?raw=1">
-        </a>
-       <!--        wikipedia -->
-           <a href="https://codepen.io/joonjang/full/PKdvrO/" target="_blank" rel="noopener noreferrer">
-        <img class="weatherProj" src="https://www.dropbox.com/s/thgd4aps18n1awn/as4.png?raw=1">
-        </a>
-      </div>
-      
+			
+		<div id="content">
 
-    </div>
-  </div>
 
-  <a class="anchor" id="con"></a>
-<div class="jumbotron" id="jumbo2">
-    <div class="container">
-        <h1 id="conMe">Contact Me</h1>
-            <hr id="hr2">
+			<div class="photoInfo" id="beerpongInfo" onclick="showPhoto(this.id)">
 
-      <form action="mailto:phfatballz@gmail.com" method="post" enctype="text/plain">
-        <div>
-        <input type="text" placeholder="Name" required class="contBox" name="Name">
-        </div>
-        <div>
-        <input type="email" placeholder="Email" required class="contBox" name="Email">
-        </div>
-        <div>
-        <input type="tel" placeholder="Phone" required class="contBox" name="Phone">
-        </div><div>
-          <textarea type="text" placeholder="Message" rows="6" required class="contBox" name="Message"></textarea>
-        </div><div>
-          <button type="submit" class="btn btn-lg">Send</button>
-          </div>
-        
-      </form>
-      
-      <p class="paraCont">Get in touch with me and we can talk about whatever you'd like. Videogames, travel, programming. Whatever you'd like. Meeting new people is always fun. Well, most of the times.</p>
-      <p class="paraCont"> I reply back relatively quick. I swear.<p>
-      
-    </div>
-</div>
-  <div class="footer">
-  Created by <strong>Joon</strong>
-</div>
+				<h2>Beer Pong Pocket Edition</h2>
+				
+					<a href="javascript:void(0)" class="closebtn" >×</a>
+					<p>
+						• Released on the Google Play store: 
+						<br><a href="https://play.google.com/store/apps/details?id=com.JoonsPetProject.BeerPong" target="_blank" class="infoClickLink">
+							Click Here to View
+						</a> 
+					</p>
+						
+					<p class="infoDescription"> 
+						App description: "Beer Pong Pocket Edition lets you play the classic game of beer pong with your phone! Play with your friends or by yourself and try to beat your opponent."
+					</p>
+						
+					<p>
+						• Built using the Unity engine
+					</p>
+					<p>
+						• Graphic and sprites built using Blender and Photoshop
+					</p>
+					<p>
+						• Game mechanics programmed with C#
+					</p>
+			</div>
+
+			<div class="photoInfo" id="influenceInfo" onclick="showPhoto(this.id)">
+				<h2>Laws for Influence</h2>
+				<a href="javascript:void(0)" class="closebtn" >×</a>
+				<p>
+					• Released on the Google Play store: 
+					<br><a href="https://play.google.com/store/apps/details?id=com.companyname.lawsforimpact" target="_blank" class="infoClickLink">
+						Click Here to View
+					</a> 
+				</p>
+				<p class="infoDescription"> 
+					App description: "This is a compilation of human principles that all influential people have consciously or unconsciously utilized to make a difference. The information is sourced from the novels of Robert Greene and Dale Carnegie."
+				</p>
+				<p>
+					• Programmed in C# using the Xamarin framework 
+				</p>
+				<p>
+					• Database constructed with SQLite 
+				</p>
+				<p>
+					• Worked with the Android architecture to save user's preferences, access local database, and fire scheduled local notifications
+				</p>
+			</div>
+
+			<div class="photoInfo" id="githubInfo" onclick="showPhoto(this.id)">
+				<h2>GitHub</h2>
+				<a href="javascript:void(0)" class="closebtn" >×</a>
+				<p>
+					• Repository of past projects: 
+					<br><a href="https://github.com/joonjang" target="_blank" class="infoClickLink">
+						Click Here to View
+					</a> 
+				</p>
+				<p>
+					• Contains the source code and assets for my Android application listed on this page
+				</p>
+				<p>
+					• Contains the source code for this website
+				</p>
+			</div>
+
+			<div class="photoInfo" id="codepenInfo"  onclick="showPhoto(this.id)">
+				<h2>CodePen</h2>
+				<a href="javascript:void(0)" class="closebtn">×</a>
+				<p>
+					• Collection of web development projects: 
+					<br><a href="https://codepen.io/joonjang" target="_blank" class="infoClickLink">
+						Click Here to View
+					</a> 
+				</p>
+				<p>
+					• Based off FreeCodeCamp's course
+				</p>
+				<p>
+					• Projects created using HTML, CSS, and JavaScript
+				</p>
+			</div>
+
+			<div id="beerpong" class="photoTile" onclick="isolatePhoto(this.id)" >
+				<button class="collapsiblePhoto"  > 
+				<!-- <button class="openbtn" onclick="openNav()">  -->
+				<img src="https://www.dropbox.com/s/mrw4lg8ljlk9uhd/bpTitle.png?dl=1" />
+				</button>
+
+				
+
+
+				<!-- <div id="mySidepanel" class="sidepanel"> -->
+					<!-- <div class="contentPhoto">
+					<p>
+						<a href="javascript:void(0)" class="closebtn" onclick="showPhoto()">×</a>
+						point 1
+						<br>
+						point 2
+						<br>
+						point 3 
+						<br>
+						point 4
+						
+					</p>
+				</div> -->
+			</div>
+			
+
+			<div id="influence" class="photoTile" onclick="isolatePhoto(this.id)">
+				<button class="collapsiblePhoto"> 
+					<!-- <button class="openbtn" onclick="openNav()">  -->
+				<img src="https://www.dropbox.com/s/yvszryycjz406f6/influenceTitle.png?dl=1" />
+				</button>
+				<!-- <div class="contentPhoto"> -->
+					<!-- <div id="mySidepanel" class="sidepanel"> -->
+					<!-- <p>
+						point 1
+						<br>
+						point 2
+						<br>
+						point 3 
+						<br>
+						point 4
+				</div> -->
+			</div>
+
+			<div id="github" class="photoTile" onclick="isolatePhoto(this.id)">
+				<button class="collapsiblePhoto"> 
+					<!-- <button class="openbtn" onclick="openNav()">  -->
+				<img src="https://www.dropbox.com/s/ba20ia1aypm8yhx/githubTitle.png?dl=1" />
+				</button>
+			
+			</div>
+
+			<div id="codepen" class="photoTile" onclick="isolatePhoto(this.id)">
+				<button class="collapsiblePhoto"> 
+					<!-- <button class="openbtn" onclick="openNav()">  -->
+				<img src="https://www.dropbox.com/s/kpvmdsraoey4l4s/codepenTitle.png?dl=1" />
+				</button>
+				<!-- <div class="contentPhoto"> -->
+					<!-- <div id="mySidepanel" class="sidepanel"> -->
+					<!-- <p>
+						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent iaculis dolor sem, non lobortis velit efficitur eu. Etiam fringilla varius sapien, non tempor ante tincidunt et. Aenean varius, quam eu interdum dapibus, est urna fermentum justo, sed finibus arcu elit sit amet velit. Nam hendrerit, erat ac condimentum euismod, est eros tincidunt enim, semper interdum orci justo ac ipsum. Etiam quis odio cursus, sollicitudin magna quis, malesuada dolor. Nunc lectus massa, rutrum in nunc ut, interdum maximus quam. Etiam ut massa et dolor viverra mollis. Maecenas sed tempus nisi, et porttitor nibh. Maecenas fringilla, erat sit amet laoreet tempor, est odio feugiat elit, et dictum ligula justo quis justo. Pellentesque porta turpis condimentum nisi elementum, sed molestie justo finibus. Nullam vel libero ut ante laoreet pulvinar. Aenean eget maximus ex. Praesent quis tortor faucibus, sollicitudin orci eget, feugiat lacus. Aenean eget ornare leo.
+
+Curabitur sit amet nunc nec nisi dapibus iaculis vel vitae mi. Duis urna tellus, vestibulum dapibus nulla et, pulvinar eleifend enim. Morbi ac sem sed justo accumsan posuere sed pulvinar urna. Duis vitae est purus. Cras quis nibh vestibulum, volutpat enim id, pellentesque nibh. Sed massa metus, luctus a eleifend sed, imperdiet sed ex. Suspendisse sit amet cursus mauris, consequat pharetra nulla. Suspendisse congue mattis metus nec suscipit. Nam mattis ut tellus quis molestie. Sed eget orci tellus. Donec a quam eu mauris volutpat efficitur semper vel turpis. Mauris nec enim vel ipsum scelerisque tincidunt. Cras congue magna at tempus congue. Sed finibus sollicitudin dui sit amet ornare.
+					</p>
+				</div> -->
+			</div>
+		</div>
+
+			<div id="contact">
+				<p>GET IN TOUCH</p>
+				<h2>
+					<button class="collapsible"> <strong>EMAIL</strong> </button>
+					<div class="content">
+						<p>
+							w.joon.jang@gmail.com
+						</p>
+					</div>
+					<button class="collapsible"> <strong>PHONE</strong> </button>
+					<div class="content">
+						<p>
+							604-700-9723
+						</p>
+					</div>
+					<button class="collapsible"> <strong>INSTAGRAM</strong> </button>
+					<div class="content">
+						<p>
+							<a href="https://www.instagram.com/joonjulyaugust/" target="_blank">@joonjulyaugust</a>
+						</p>
+					</div>
+					
+				</h2>
+			</div>
+
+		</div>
+
+		<footer id="footer">Made by <b>Joon</b></footer>
+	</div>
 </body>
-</html>
-  <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+<!-- partial -->
+  <script  src="./indexScript.js"></script>
 
-  
-
-</body>
 
 </html>
