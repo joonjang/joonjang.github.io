@@ -91,21 +91,7 @@ h1.active {
 		"contact";
 }
 
-#content{
-	/* background-color: indianred; */
-	grid-area: content;
 
-	display: grid;
-
-	grid-gap: 25px;
-
-	grid-template-areas:
-		"beerpong influence github"
-		"codepen codepen codepen"
-		"contact contact contact";
-
-		--stagger-delay: 100ms;
-}
 
 
 #start {
@@ -133,23 +119,26 @@ h1.active {
 }
 
 p {
-	font-size: 2em;
+	padding-left: 20px;
+	font-size: 1em;
+	color: white;
+}
+h3 {
 	color: white;
 }
 h2 {
-	font-size: 3em;
+	font-size: 2em;
+	color: white;
 }
 a{
 	padding: 5px;
+	color: orange;
 }
 a:link {
 	text-decoration: none;
-	color: white;
+	
 }
-a:visited {
-	text-decoration: none;
-	color: white;
-}
+
 a:hover {
 	text-decoration: none;
 	color: white;
@@ -204,15 +193,4 @@ a:active {
 	font-size: 36px;
   }
 
-  .infoDescription{
 
-	  margin-left: 25px;
-	  /* background: blue; */
-	  font-size: 24px;
-  }
-
-  .infoClickLink{
-	  padding-left: 2em;
-	  font-size: 24px;
-	  /* background: red; */
-  }
