@@ -1,196 +1,103 @@
-@import url("https://fonts.googleapis.com/css?family=Montserrat:400,400i,700");
-
-html,
-body {
-	margin: 0;
-
-	font-family: Montserrat, sans-serif;
-	background: white;
-	transition: all 0.7s;
+/* Apply a basic reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-body.active {
-	background: black;
+body, html {
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f7f7f7; /* Light grey background for some contrast */
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: background-color 0.3s;
 }
 
-h1 {
-	color: black;
-	transition: all 0.7s;
+#quote-container {
+    width: 80%;
+    max-width: 600px;
+    margin: auto;
+    padding: 2em;
+    background: white; /* White shade background for the quote container */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(0);
+    transition: box-shadow 0.3s ease-in-out;
+    opacity: 1;
 }
 
-h1.active {
-	color: white;
-	transition: all 0.7s;
+#quote {
+    font-size: 1.5em;
+    line-height: 1.4;
+    margin-bottom: 1.5em;
+    font-weight: 500;
+    color: #555;
+    position: relative;
+    opacity: 0; /* Start with text invisible */
+    transition: opacity 0.5s ease-in-out;
 }
 
-
-#master-grid {
-	display: grid;
-	min-height: 100vh;
-	/* 	background: red; */
-
-	grid-template-columns: 10% 40% 40% 10%;
-	grid-template-rows: 50px 1fr auto;
-	grid-template-areas:
-		"navbar-left header header navbar-right"
-		". main main ."
-		"footer footer footer footer";
-}
-#navbar-left {
-	grid-area: navbar-left;
-	/* background: aqua; */
-	padding: 25px;
-	position: fixed;
-	font-size: 2em;
-	z-index: 1;
-
-	filter: invert(1);
-	mix-blend-mode: difference;
-
+#quote.show {
+    opacity: 1;
 }
 
-#navbar-right {
-	grid-area: navbar-right;
-	/* background: yellow; */
-	padding: 25px;
-	right: 0;
-	position: fixed;
-	font-size: 2em;
-	z-index: 1;
-	
-	filter: invert(1);
-	mix-blend-mode: difference;
+button {
+    background-color: #6c757d; /* Grey */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease-in-out;
 }
 
-#navbar-left span{
-
-	display: inline-flex;
-  }
-  
-  #navbar-left span:nth-child(even){
-	overflow: hidden;
-	transition: ease-in-out 0.5s;
-	letter-spacing: -1em;
-  }
-  
-  #navbar-left:hover span:nth-child(even){
-	letter-spacing:0;
-  }
-  
-
-#body {
-/* background: violet; */
-
-	grid-area: main;
-	display: grid;
-	grid-template-rows: 85vh;
-
-	grid-template-areas:
-		"start"
-		"content"
-		"contact";
+button:hover {
+    background-color: #5a6268; /* Darker Grey */
 }
 
-
-
-
-#start {
-	grid-area: start;
-	font-size: 40px;
-	vertical-align: center;
-	margin: auto 0 auto 0;
-
-	/* 	background: orange; */
+/* Add some space between buttons */
+button:not(:last-child) {
+    margin-right: 0.5em;
 }
 
-#footer {
-	text-align: center;
-	grid-area: footer;
-	background-color: white;
+/* Responsive design */
+@media (max-width: 768px) {
+    #quote-container {
+        width: 90%;
+        padding: 1.5em;
+    }
+
+    #quote {
+        font-size: 1.2em;
+    }
+
+    button {
+        padding: 10px 20px;
+    }
 }
 
-
-
-#contact {
-	/* background-color: red; */
-	grid-area: contact;
-	font-size: 1em;
-	color: white;
+#countdown-container {
+    position: relative;
+    width: 100%;
+    height: 5px;
+    background-color: #e9ecef; /* Light grey */
+    margin-bottom: 20px;
+    overflow: hidden;
 }
 
-p {
-	padding-left: 20px;
-	font-size: 1em;
-	color: white;
+#countdown-bar {
+    position: absolute;
+    width: 0%;
+    height: 100%;
+    background-color: #adb5bd; /* Medium grey */
+    transition: width 10s linear;
 }
-h3 {
-	color: white;
-}
-h2 {
-	font-size: 2em;
-	color: white;
-}
-a{
-	padding: 5px;
-	color: orange;
-}
-a:link {
-	text-decoration: none;
-	
-}
-
-a:hover {
-	text-decoration: none;
-	color: white;
-}
-a:focus {
-	text-decoration: none;
-	color: white;
-}
-a:hover,
-a:active {
-	text-decoration: none;
-	color: darkgray;
-}
-
-.collapsible {
-	cursor: pointer;
-	border: none;
-	text-align: left;
-	outline: none;
-	color: white;
-	background-color: transparent;
-	font-size: 1em;
-  }
-
-.collapsible:hover{
-	color: darkgray;
-}
-
-  .content {
-	  padding: 0;
-	  margin: 0 35px;
-	max-height: 0;
-	font-size: 12px;
-	overflow: hidden;
-	transition: max-height 0.2s ease-out;
-  }
-  
-  .collapsiblePhoto {
-	cursor: pointer;
-	border: none;
-	text-align: left;
-	outline: none;
-	color: white;
-	background-color: transparent;
-	font-size: 1em;
-  }
-  
-  .photoInfo .closebtn {
-	position: absolute;
-	top: 0;
-	right: 20px;
-	font-size: 36px;
-  }
-
-
