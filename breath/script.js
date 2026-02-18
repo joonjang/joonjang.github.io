@@ -11,8 +11,8 @@ const minSizePercent = 55;
 const maxSizePercent = 130;
 const fadeDurationMs = 220;
 const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-const noiseLayerGainBoost = 6.2;
-const ambientNoiseGainBoost = 5.4;
+const noiseLayerGainBoost = 11;
+const ambientNoiseGainBoost = 9.5;
 
 const nodes = {
   visualizer: document.getElementById("visualizer"),
@@ -109,7 +109,7 @@ function ensureAudioContext() {
 
   if (!state.audioMaster) {
     state.audioMaster = state.audioCtx.createGain();
-    state.audioMaster.gain.value = 1.75;
+    state.audioMaster.gain.value = 2.8;
   }
 
   if (!state.audioToneFilter) {
@@ -133,8 +133,8 @@ function ensureAudioContext() {
     state.audioWet = state.audioCtx.createGain();
     state.audioConvolver = state.audioCtx.createConvolver();
 
-    state.audioDry.gain.value = 0.72;
-    state.audioWet.gain.value = 0.72;
+    state.audioDry.gain.value = 0.95;
+    state.audioWet.gain.value = 0.95;
     state.audioConvolver.buffer = createReverbImpulse(state.audioCtx, 4.8, 3.4);
 
     state.audioMaster.connect(state.audioToneFilter);
