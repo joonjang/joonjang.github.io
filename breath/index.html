@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Box Breathing Visualizer | 4-4-4-4 Guided Breathing</title>
+  <meta name="description" content="Calming box breathing visualizer with a 4-second inhale, hold, exhale, and hold cycle, plus optional quotes, timer, and sound cues.">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="keywords" content="box breathing, breathing exercise, guided breathing, meditation, mindfulness, stress relief">
+  <link rel="canonical" href="https://joonjang.github.io/breath/index.html">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Box Breathing Visualizer | 4-4-4-4 Guided Breathing">
+  <meta property="og:description" content="Use a minimal guided box breathing exercise with a 4-4-4-4 rhythm to relax, focus, and reset.">
+  <meta property="og:url" content="https://joonjang.github.io/breath/index.html">
+  <meta property="og:site_name" content="Joon Jang Portfolio">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Box Breathing Visualizer | 4-4-4-4 Guided Breathing">
+  <meta name="twitter:description" content="A calming 4-4-4-4 box breathing visualizer with timer, quotes, and optional sound cues.">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Box Breathing Visualizer",
+      "url": "https://joonjang.github.io/breath/index.html",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Web Browser",
+      "description": "A guided 4-4-4-4 box breathing visualizer for relaxation, focus, and mindfulness practice.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-phase="inhale">
+  <main class="shell">
+    <section class="card">
+      <header class="header">
+        <p class="eyebrow">Guided Rhythm</p>
+        <h1>Box Breathing</h1>
+        <p class="subhead">4s inhale · 4s hold · 4s exhale · 4s hold</p>
+      </header>
+
+      <div id="visualizer" class="visualizer">
+        <p id="elapsed" class="elapsed">Elapsed 00:00</p>
+        <div id="scene" class="scene">
+          <div class="scene-glow"></div>
+          <div class="scene-fill" aria-hidden="true"></div>
+          <div id="hold-ring" class="hold-ring" aria-hidden="true">
+            <svg class="hold-trace" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path class="hold-track" d="M 7.101 7.101 A 14 14 0 0 1 17 3 H 83 A 14 14 0 0 1 97 17 V 83 A 14 14 0 0 1 83 97 H 17 A 14 14 0 0 1 3 83 V 17 A 14 14 0 0 1 7.101 7.101 Z" pathLength="100"></path>
+              <path class="hold-progress" d="M 7.101 7.101 A 14 14 0 0 1 17 3 H 83 A 14 14 0 0 1 97 17 V 83 A 14 14 0 0 1 83 97 H 17 A 14 14 0 0 1 3 83 V 17 A 14 14 0 0 1 7.101 7.101 Z" pathLength="100"></path>
+            </svg>
+          </div>
+          <div id="breath-core" class="breath-core"></div>
+
+          <div class="breath-text">
+            <p id="instruction" class="instruction" aria-live="polite">Inhale</p>
+            <p id="countdown" class="countdown">4s</p>
+          </div>
+        </div>
+      </div>
+
+      <section id="quote-card" class="quote-card" aria-live="polite">
+        <p id="quote-text" class="quote-text">Loading quote...</p>
+        <p id="quote-author" class="quote-author"></p>
+        <div class="quote-footer">
+          <p id="quote-refresh" class="quote-refresh">Next quote in --s</p>
+          <div class="quote-controls">
+            <label class="quote-auto">
+              <input id="quote-auto-toggle" type="checkbox" checked>
+              <span>Auto</span>
+            </label>
+            <button id="quote-shuffle" class="quote-shuffle" type="button">Shuffle</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="settings" aria-label="Options">
+        <p class="settings-title">Options</p>
+        <div class="size-row">
+          <div class="size-control">
+            <label for="size-slider">Visualizer Size</label>
+            <div class="size-control-row">
+              <input id="size-slider" type="range" min="55" max="130" step="1" value="100" aria-label="Visualizer size">
+              <output id="size-value" for="size-slider">100%</output>
+            </div>
+          </div>
+          <label class="toggle-item size-sound-toggle"><span>Sound Cues</span><input id="toggle-sound" type="checkbox"></label>
+        </div>
+        <div class="toggles">
+          <label class="toggle-item"><span>Instruction</span><input id="toggle-instruction" type="checkbox" checked></label>
+          <label class="toggle-item"><span>Countdown</span><input id="toggle-countdown" type="checkbox" checked></label>
+          <label class="toggle-item"><span>Elapsed Time</span><input id="toggle-elapsed" type="checkbox" checked></label>
+          <label class="toggle-item"><span>Quotes</span><input id="toggle-quotes" type="checkbox" checked></label>
+        </div>
+
+        <div class="controls">
+          <button id="start-pause" class="btn-primary" type="button">Pause</button>
+          <button id="reset" class="btn-ghost" type="button">Reset</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
