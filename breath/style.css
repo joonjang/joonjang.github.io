@@ -299,6 +299,8 @@ h1 {
 .instruction,
 .countdown {
   margin: 0;
+  will-change: opacity;
+  backface-visibility: hidden;
 }
 
 .instruction {
@@ -352,6 +354,8 @@ h1 {
   transition: opacity 0.24s ease;
   position: relative;
   z-index: 1;
+  will-change: opacity;
+  backface-visibility: hidden;
 }
 
 .quote-author {
@@ -365,6 +369,8 @@ h1 {
   position: relative;
   z-index: 1;
   margin-bottom: 1.95rem;
+  will-change: opacity;
+  backface-visibility: hidden;
 }
 
 .quote-footer {

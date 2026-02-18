@@ -9,6 +9,7 @@ const quoteRefreshMs = 60000;
 const holdReleaseMs = 240;
 const minSizePercent = 55;
 const maxSizePercent = 130;
+const fadeDurationMs = 220;
 const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
 const noiseLayerGainBoost = 6.2;
 const ambientNoiseGainBoost = 5.4;
@@ -38,6 +39,7 @@ const nodes = {
 };
 
 const fadeTimers = new Map();
+const fadeAnimationFrames = new Map();
 const pendingFadeValues = new Map();
 
 const state = {
@@ -827,30 +829,61 @@ function installAudioUnlock() {
 
 function setTextWithFade(node, value, animate = true) {
   if (!animate) {
+    const existingTimer = fadeTimers.get(node);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      fadeTimers.delete(node);
+    }
+
+    const existingAnimationFrame = fadeAnimationFrames.get(node);
+    if (existingAnimationFrame) {
+      cancelAnimationFrame(existingAnimationFrame);
+      fadeAnimationFrames.delete(node);
+    }
+
     node.textContent = value;
     node.classList.remove("is-fading");
     pendingFadeValues.delete(node);
     return;
   }
 
-  if (pendingFadeValues.get(node) === value || node.textContent === value) {
+  const pendingValue = pendingFadeValues.get(node);
+  if (pendingValue === value || node.textContent === value) {
+    if (!fadeTimers.has(node) && !fadeAnimationFrames.has(node)) {
+      node.classList.remove("is-fading");
+      pendingFadeValues.delete(node);
+    }
     return;
   }
 
   const existingTimer = fadeTimers.get(node);
   if (existingTimer) {
     clearTimeout(existingTimer);
+    fadeTimers.delete(node);
+  }
+
+  const existingAnimationFrame = fadeAnimationFrames.get(node);
+  if (existingAnimationFrame) {
+    cancelAnimationFrame(existingAnimationFrame);
+    fadeAnimationFrames.delete(node);
   }
 
   pendingFadeValues.set(node, value);
+  node.classList.remove("is-fading");
+  // Safari occasionally drops rapid opacity transitions without a reflow reset.
+  void node.offsetWidth;
   node.classList.add("is-fading");
 
   const timer = setTimeout(() => {
     node.textContent = value;
-    node.classList.remove("is-fading");
-    pendingFadeValues.delete(node);
+    const frameId = requestAnimationFrame(() => {
+      node.classList.remove("is-fading");
+      pendingFadeValues.delete(node);
+      fadeAnimationFrames.delete(node);
+    });
+    fadeAnimationFrames.set(node, frameId);
     fadeTimers.delete(node);
-  }, 220);
+  }, fadeDurationMs);
 
   fadeTimers.set(node, timer);
 }

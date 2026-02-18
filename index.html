@@ -1,211 +1,145 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-	<script>
-		window.dataLayer = window.dataLayer || [];
-		  function gtag(){dataLayer.push(arguments);}
-		  gtag('js', new Date());
-		
-		  gtag('config', 'G-7ZPV7C6P7V');
-		(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-			new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-			j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-			'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-			})(window,document,'script','dataLayer','GTM-NRSDKBL2');</script>
-			<!-- Google tag (gtag.js) -->
-		<script async src="https://www.googletagmanager.com/gtag/js?id=G-7ZPV7C6P7V"></script>
-		
-			<!-- End Google Tag Manager -->
   <meta charset="UTF-8">
-  <title>Joon's Online Portfolio</title>
-  <link rel="stylesheet" href="css/indexStyle.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joon Jang | Software Developer</title>
+  <meta name="description" content="Joon Jang is a software developer. Reach out by email or try the box breathing visualizer.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eff4f1;
+      --ink: #14231e;
+      --muted: #4c6660;
+      --panel: rgba(255, 255, 255, 0.88);
+      --line: rgba(20, 35, 30, 0.14);
+      --accent: #176f5c;
+      --accent-strong: #0f5849;
+    }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.2rem;
+      color: var(--ink);
+      background: radial-gradient(960px 420px at 0% 0%, rgba(35, 118, 98, 0.11), transparent 62%), var(--bg);
+      font-family: "Manrope", sans-serif;
+    }
+
+    .card {
+      width: min(660px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: clamp(1.2rem, 3vw, 2rem);
+      box-shadow: 0 12px 24px rgba(19, 40, 36, 0.08);
+      display: grid;
+      gap: 0.95rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.05rem, 4.8vw, 2.95rem);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+    }
+
+    .role {
+      margin: 0.36rem 0 0;
+      color: var(--muted);
+      font-size: clamp(1.02rem, 2.5vw, 1.18rem);
+      font-weight: 500;
+    }
+
+    .note {
+      margin: 0.56rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .email-link {
+      display: inline-flex;
+      margin-top: 0.5rem;
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .email-link:hover {
+      color: var(--accent-strong);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.62rem;
+      align-items: center;
+      margin-top: 0.25rem;
+      padding-top: 0.92rem;
+      border-top: 1px solid var(--line);
+    }
+
+    .btn {
+      border-radius: 11px;
+      padding: 0.64rem 0.92rem;
+      border: 1px solid var(--line);
+      text-decoration: none;
+      font-weight: 600;
+      letter-spacing: 0;
+      transition: transform 0.15s ease, border-color 0.2s ease, background-color 0.2s ease;
+      background: #fff;
+      color: var(--ink);
+      font-size: 0.95rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: rgba(12, 56, 47, 0.1);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(23, 111, 92, 0.38);
+      background: #f3faf7;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-strong);
+      border-color: rgba(12, 56, 47, 0.14);
+    }
+
+    @media (max-width: 560px) {
+      .btn {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
 </head>
 <body>
-<!-- partial:index.partial.html -->
-<body id="bgtransition">
-	<div id="master-grid">
-		<div id=navbar-left onclick="location.href='#bgtransition'"; >
-			<strong>
-			<span>[J</span><span>oon Jang</span><span>]</span>
-			</strong>
-		</div>
+  <main class="card">
+    <div>
+      <h1>Joon Jang</h1>
+      <p class="role">Software Developer</p>
+      <a class="email-link" href="mailto:w.joon.jang@gmail.com">w.joon.jang@gmail.com</a>
+      <p class="note">This website is my miscellaneous content.</p>
+    </div>
 
-		<div id="body">
-
-			<div id="start">
-				<h1 class="textColorChange"><strong>JOON'S <br> ONLINE <br> PORTFOLIO</strong>
-			</div>
-
-			<div id="content">
-
-				<h2>> squiddys.social </h2>
-				<p>
-					Released on the internet: 
-					
-						[Deprecated]
-					
-					<br />
-					• Printify: Ensuring on-demand printing and dropshipping.
-					<br />
-					• Stripe: Facilitating secure and smooth online payments.
-					<br />
-					• Brevo: Managing efficient email communications for invoicing and shipping updates.
-					<br />
-					• GitHub: Hosting our code and anchoring a CI/CD workflow.
-					<br />
-					• Microsoft Azure: Powering our online presence through:
-					<br />
-					-- Static Web App: Bringing the frontend to life.
-					<br />
-					-- Functions App: Orchestrating the API logic.
-					<br />
-					-- Web PubSub Service: Nurturing real-time connection during product checkout.
-					<br />
-					-- Name.com: Providing a custom URL to welcome visitors.
-					<br />
-					-- BC Business Registry: Solidifying our web application as a legitimate business entity.
-					<br />
-					-- Loop: Handling our online business financials seamlessly.
-					<br /><br />
-					💡 Scalable, Strategic, and Sustainable:
-					<br /><br />
-					All chosen services are laced with scalable hosting plans, allowing us to operate judiciously and free until a specific usage threshold is reached. This ensures a scalable, financially-savvy operation of our web application, safeguarding sustainability while exploring scalability.
-					<br /><br />
-					🌀 Beyond Profit - A Learning Odyssey:
-					<br />
-					While the platform hosts the potential for profit, the true wealth extracted from this venture has been the indomitable knowledge and experience in sculpting a web application from a mere idea to a functioning platform.
-				</p>
-				
-				<h2>> Pomodoro Success</h2>
-				<p>
-					Released on the Apple AppStore: 
-					[Deprecated]
-					<br>
-					• App description: "Keep yourself productive during your work by using the pomodoro timing technique. Work for 25 minutes, then choose to take a break. Then start working again for 25 minutes and repeat! Motivational quotes and visual tracking of your progress is included to give you the extra boost of motivation in achieving your goals."
-					<br>
-					• Built using Swift on XCode
-					<br>
-					• Graphics built with Photoshop
-					<br>
-					• Free to download with no ads
-				</p>
-
-				<h2>> FitWatch</h2>
-				<p>
-					Released on the Google Play + Galaxy Store: 
-					<a href="https://apkcombo.app/fitwatch-companion/com.joonspetproject.fitcompanion/" target="_blank">
-						[Android Deprecated]
-					</a> +
-					<a href="https://galaxystore.samsung.com/geardetail/org.tizen.joonspetproject.FitWatch?langCd=en" target="_blank">
-						[Galaxy Deprecated]
-					</a> 
-					<br>
-					• App description: "Allows you to transfer a spreadsheet to a Samsung smart watch to be edited. Then can be synced back to the phone to update the old spreadsheet with the newly modified spreadsheet information from the smart watch. Main purpose of this app is to allow the use of a workout spreadsheet on the watch without bringing the phone to the gym."
-					<br>
-					• Built with C# using the Tizen.NET and Xamarin Framework
-					<br>
-					• Supplemented by Google's Spreadsheet API
-					<br>
-					• YouTube tutorial made to support the setting up process
-					<br>
-					• 500+ downloads
-				</p>
-
-
-					<h2>> Beer Pong Pocket Edition</h2>
-						<p>
-							Released on the Google Play store: 
-							<a href="https://apkcombo.com/beer-pong-pocket-edition/com.JoonsPetProject.BeerPong/" target="_blank">
-								[Deprecated]
-							</a>
-							<br>
-							• App description: "Beer Pong Pocket Edition lets you play the classic game of beer pong with your phone! Play with your friends or by yourself and try to beat your opponent."
-							<br>
-							• Built using the Unity engine
-							<br>
-							• Graphics and sprites built using Blender and Photoshop
-							<br>
-							• Game mechanics programmed with C#
-							<br>
-							• 5,000+ downloads
-						</p>
-				
-
-					<h2>> Laws for Influence</h2>
-					<p>
-						Released on the Google Play store: 
-						<a href="https://apkcombo.com/laws-for-influence/com.companyname.lawsforimpact/" target="_blank">
-							[Deprecated]
-						</a>
-						<br>
-						• App description: "This is a compilation of human principles that all influential people have consciously or unconsciously utilized to make a difference. The information is sourced from the novels of Robert Greene and Dale Carnegie."
-						<br>
-						• Programmed in C# using the Xamarin Framework in conjuction with the .NET Framework
-						<br>
-						• Database constructed with SQLite 
-						<br>
-						• Worked with the Android architecture to save user's preferences, access local database, and fire scheduled local notifications
-						<br>
-						• 1,000+ downloads
-					</p>
-
-
-					<h2>> Box Breathing Visualizer</h2>
-					<p>
-						Web page utility:
-						<a href="breath/index.html" target="_blank">
-							[Open]
-						</a>
-						<br>
-						• 4-second inhale, hold, exhale, hold loop
-						<br>
-						• Box-path visualizer with live breathing animation
-						<br>
-						• UI toggles for instructions, countdown, and elapsed time
-					</p>
-				
-	
-					<h2>> GitHub</h2>
-					<p>
-						Repository of past projects: 
-						<a href="https://github.com/joonjang" target="_blank">
-							github.com/joonjang
-						</a> 
-						<br>
-						• Contains the source code and assets for my Android application listed on this page
-						<br>
-						• Contains the source code for this website
-					<br>
-						• Additional files hosted which have not been mentioned on this page
-					</p>
-				
-	
-					<h2>> CodePen</h2>
-					<p>
-						Collection of web development projects: <a href="https://codepen.io/joonjang" target="_blank">
-							codepen.io/joonjang
-						</a> 
-						<br>
-						• Based off FreeCodeCamp's course
-						<br>
-						• Projects created using HTML, CSS, and JavaScript
-						<br>
-						• Used as a quick sketchbook for web development visualisation
-					</p>
-				
-			</div>
-	
-
-			<br><br>
-			<br><br>
-		</div>
-
-		<footer id="footer">Made by <b>Joon</b></footer>
-	</div>
+    <div class="row">
+      <a class="btn" href="https://github.com/joonjang?tab=repositories" target="_blank" rel="noopener noreferrer">GitHub Repositories</a>
+      <a class="btn btn-primary" href="/breath/">Open Box Breathing Visualizer</a>
+    </div>
+  </main>
 </body>
-<!-- partial -->
-  <script  src="javascript/indexScript.js"></script>
-
-
 </html>
