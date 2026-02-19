@@ -13,6 +13,7 @@ const fadeDurationMs = 220;
 const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
 const noiseLayerGainBoost = 11;
 const ambientNoiseGainBoost = 9.5;
+const settingsStorageKey = "breath.settings.v1";
 
 const nodes = {
   visualizer: document.getElementById("visualizer"),
@@ -69,6 +70,69 @@ const state = {
   rafId: null
 };
 
+function parseStoredBoolean(value, fallback) {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function loadPersistedSettings() {
+  try {
+    const rawValue = window.localStorage.getItem(settingsStorageKey);
+    if (!rawValue) {
+      return null;
+    }
+
+    const parsedValue = JSON.parse(rawValue);
+    if (!parsedValue || typeof parsedValue !== "object") {
+      return null;
+    }
+
+    return parsedValue;
+  } catch (error) {
+    return null;
+  }
+}
+
+function applyPersistedSettings() {
+  const persisted = loadPersistedSettings();
+  if (!persisted) {
+    return;
+  }
+
+  const persistedSize = Number(persisted.sizePercent);
+  if (Number.isFinite(persistedSize)) {
+    const normalizedSize = clamp(Math.round(persistedSize), minSizePercent, maxSizePercent);
+    nodes.sizeSlider.value = String(normalizedSize);
+  }
+
+  nodes.toggleSound.checked = parseStoredBoolean(persisted.soundEnabled, nodes.toggleSound.checked);
+  nodes.toggleInstruction.checked = parseStoredBoolean(persisted.showInstruction, nodes.toggleInstruction.checked);
+  nodes.toggleCountdown.checked = parseStoredBoolean(persisted.showCountdown, nodes.toggleCountdown.checked);
+  nodes.toggleElapsed.checked = parseStoredBoolean(persisted.showElapsed, nodes.toggleElapsed.checked);
+  nodes.toggleQuotes.checked = parseStoredBoolean(persisted.showQuotes, nodes.toggleQuotes.checked);
+  nodes.quoteAutoToggle.checked = parseStoredBoolean(persisted.quoteAutoShuffle, nodes.quoteAutoToggle.checked);
+}
+
+function collectCurrentSettings() {
+  const rawSize = Number(nodes.sizeSlider.value);
+  return {
+    sizePercent: clamp(Math.round(Number.isFinite(rawSize) ? rawSize : 100), minSizePercent, maxSizePercent),
+    soundEnabled: nodes.toggleSound.checked,
+    showInstruction: nodes.toggleInstruction.checked,
+    showCountdown: nodes.toggleCountdown.checked,
+    showElapsed: nodes.toggleElapsed.checked,
+    showQuotes: nodes.toggleQuotes.checked,
+    quoteAutoShuffle: nodes.quoteAutoToggle.checked
+  };
+}
+
+function persistSettings() {
+  try {
+    window.localStorage.setItem(settingsStorageKey, JSON.stringify(collectCurrentSettings()));
+  } catch (error) {
+    // Storage can fail in private browsing or strict privacy modes.
+  }
+}
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -85,7 +149,10 @@ function setVisibility(toggleNode, targetNode) {
 }
 
 function wireToggle(toggleNode, targetNode) {
-  toggleNode.addEventListener("change", () => setVisibility(toggleNode, targetNode));
+  toggleNode.addEventListener("change", () => {
+    setVisibility(toggleNode, targetNode);
+    persistSettings();
+  });
   setVisibility(toggleNode, targetNode);
 }
 
@@ -101,6 +168,19 @@ function setPhaseTheme(phaseId) {
 function ensureAudioContext() {
   if (!AudioContextCtor) {
     return null;
+  }
+
+  if (state.audioCtx && state.audioCtx.state === "closed") {
+    state.audioCtx = null;
+    state.audioMaster = null;
+    state.audioToneFilter = null;
+    state.audioDry = null;
+    state.audioWet = null;
+    state.audioConvolver = null;
+    state.audioLimiter = null;
+    state.ambientVoice = null;
+    state.activeVoices = [];
+    state.noiseBuffer = null;
   }
 
   if (!state.audioCtx) {
@@ -147,6 +227,32 @@ function ensureAudioContext() {
   }
 
   return state.audioCtx;
+}
+
+function resumeAudioContextIfNeeded(onReady) {
+  const ctx = ensureAudioContext();
+  if (!ctx) {
+    return null;
+  }
+
+  if (ctx.state === "running") {
+    if (typeof onReady === "function") {
+      onReady(ctx);
+    }
+    return ctx;
+  }
+
+  if (ctx.state === "suspended" || ctx.state === "interrupted") {
+    ctx.resume()
+      .then(() => {
+        if (ctx.state === "running" && typeof onReady === "function") {
+          onReady(ctx);
+        }
+      })
+      .catch(() => {});
+  }
+
+  return ctx;
 }
 
 function createReverbImpulse(ctx, durationSeconds, decay) {
@@ -331,7 +437,12 @@ function schedulePhaseLayer(ctx, options) {
   const noiseCenterEnd = Math.max(120, options.noiseCenterEnd || noiseCenter);
   const noiseQ = options.noiseQ || 0.9;
   const endAt = startAt + duration;
-  const releaseStart = Math.max(startAt + attack + 0.05, endAt - release);
+  const peakAt = Math.min(endAt - 0.02, startAt + attack);
+  const releaseStart = clamp(
+    Math.max(startAt + attack + 0.05, endAt - release),
+    peakAt,
+    endAt - 0.02
+  );
 
   const baseOscillator = ctx.createOscillator();
   const harmonicOscillator = ctx.createOscillator();
@@ -367,7 +478,7 @@ function schedulePhaseLayer(ctx, options) {
   filter.Q.setValueAtTime(options.q || 0.55, startAt);
 
   gain.gain.setValueAtTime(0.0001, startAt);
-  gain.gain.exponentialRampToValueAtTime(peak, Math.min(endAt - 0.02, startAt + attack));
+  gain.gain.exponentialRampToValueAtTime(peak, peakAt);
   gain.gain.exponentialRampToValueAtTime(peak * sustain, releaseStart);
   gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
 
@@ -481,7 +592,12 @@ function scheduleNoisePad(ctx, options = {}) {
   const centerEnd = Math.max(120, options.centerEnd || centerStart);
   const bandQ = options.q || 0.55;
   const endAt = startAt + duration;
-  const releaseStart = Math.max(startAt + attack + 0.05, endAt - release);
+  const peakAt = Math.min(endAt - 0.02, startAt + attack);
+  const releaseStart = clamp(
+    Math.max(startAt + attack + 0.05, endAt - release),
+    peakAt,
+    endAt - 0.02
+  );
 
   const noiseSource = ctx.createBufferSource();
   const highpass = ctx.createBiquadFilter();
@@ -502,7 +618,7 @@ function scheduleNoisePad(ctx, options = {}) {
   bandpass.Q.setValueAtTime(bandQ, startAt);
 
   gainNode.gain.setValueAtTime(0.0001, startAt);
-  gainNode.gain.exponentialRampToValueAtTime(peak, Math.min(endAt - 0.02, startAt + attack));
+  gainNode.gain.exponentialRampToValueAtTime(peak, peakAt);
   gainNode.gain.exponentialRampToValueAtTime(peak * sustain, releaseStart);
   gainNode.gain.exponentialRampToValueAtTime(0.0001, endAt);
 
@@ -775,6 +891,8 @@ function syncSoundControl() {
     return;
   }
 
+  const shouldEnableSound = nodes.toggleSound.checked;
+
   if (!AudioContextCtor) {
     nodes.toggleSound.checked = false;
     nodes.toggleSound.disabled = true;
@@ -782,9 +900,9 @@ function syncSoundControl() {
     return;
   }
 
-  nodes.toggleSound.checked = false;
+  nodes.toggleSound.checked = shouldEnableSound;
   nodes.toggleSound.disabled = false;
-  state.soundEnabled = false;
+  state.soundEnabled = shouldEnableSound;
 }
 
 function getCurrentPhaseTiming(now = performance.now()) {
@@ -795,39 +913,22 @@ function getCurrentPhaseTiming(now = performance.now()) {
 }
 
 function installAudioUnlock() {
-  function removeUnlockListeners() {
-    window.removeEventListener("pointerdown", unlock);
-    window.removeEventListener("keydown", unlock);
-    window.removeEventListener("touchstart", unlock);
-  }
-
   function unlock() {
-    if (!state.soundEnabled) {
-      return;
-    }
-
     const ctx = ensureAudioContext();
     if (!ctx) {
       return;
     }
 
-    const playCurrent = () => {
-      const { phase, remaining } = getCurrentPhaseTiming();
-      playPhaseCue(phase.id, remaining);
-    };
-
-    if (ctx.state === "suspended" || ctx.state === "interrupted") {
-      ctx.resume()
-        .then(() => {
-          playCurrent();
-          removeUnlockListeners();
-        })
-        .catch(() => {});
+    if (ctx.state !== "suspended" && ctx.state !== "interrupted") {
       return;
     }
 
-    playCurrent();
-    removeUnlockListeners();
+    const { phase, remaining } = getCurrentPhaseTiming();
+    resumeAudioContextIfNeeded(() => {
+      if (state.soundEnabled) {
+        playPhaseCue(phase.id, remaining);
+      }
+    });
   }
 
   window.addEventListener("pointerdown", unlock);
@@ -1163,9 +1264,11 @@ nodes.startPause.addEventListener("click", () => {
 nodes.reset.addEventListener("click", reset);
 nodes.sizeSlider.addEventListener("input", (event) => {
   applySceneScale(event.target.value);
+  persistSettings();
 });
 nodes.toggleSound.addEventListener("change", () => {
   state.soundEnabled = nodes.toggleSound.checked;
+  persistSettings();
   if (!state.soundEnabled) {
     stopAllPhaseAudio();
     stopAmbientBed();
@@ -1178,20 +1281,13 @@ nodes.toggleSound.addEventListener("change", () => {
   }
 
   const { phase, remaining } = getCurrentPhaseTiming();
-
-  if (ctx.state === "suspended" || ctx.state === "interrupted") {
-    ctx.resume()
-      .then(() => {
-        playPhaseCue(phase.id, remaining);
-      })
-      .catch(() => {});
-    return;
-  }
-
-  playPhaseCue(phase.id, remaining);
+  resumeAudioContextIfNeeded(() => {
+    playPhaseCue(phase.id, remaining);
+  });
 });
 nodes.quoteAutoToggle.addEventListener("change", () => {
   state.quoteAutoShuffle = nodes.quoteAutoToggle.checked;
+  persistSettings();
   scheduleQuoteRefresh();
 });
 nodes.quoteShuffle.addEventListener("click", () => {
@@ -1205,15 +1301,16 @@ nodes.quoteShuffle.addEventListener("click", () => {
   }
 });
 
+applyPersistedSettings();
 wireToggle(nodes.toggleInstruction, nodes.instruction);
 wireToggle(nodes.toggleCountdown, nodes.countdown);
 wireToggle(nodes.toggleElapsed, nodes.elapsed);
 wireToggle(nodes.toggleQuotes, nodes.quoteCard);
-
 syncSoundControl();
 installAudioUnlock();
 syncQuoteControls();
 applySceneScale(nodes.sizeSlider.value);
+persistSettings();
 setPhaseTheme(phases[state.phaseIndex].id);
 loadQuotes();
 state.rafId = requestAnimationFrame(render);

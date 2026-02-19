@@ -33,47 +33,17 @@ html {
 
 body {
   margin: 0;
-  width: 100%;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 1rem;
   position: relative;
   overflow-x: hidden;
-  overflow-x: clip;
   overflow-y: auto;
   font-family: "Outfit", sans-serif;
   color: var(--ink);
   background: var(--bg-b);
   transition: background-color 0.8s ease;
-}
-
-body::before,
-body::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(8px);
-  z-index: 0;
-}
-
-body::before {
-  width: 420px;
-  height: 420px;
-  left: -140px;
-  top: -140px;
-  background: var(--phase-soft);
-  animation: drift-a 18s ease-in-out infinite alternate;
-}
-
-body::after {
-  width: 410px;
-  height: 410px;
-  right: -130px;
-  bottom: -130px;
-  background: rgba(84, 126, 182, 0.14);
-  animation: drift-b 20s ease-in-out infinite alternate;
 }
 
 body[data-phase="inhale"] {
@@ -113,7 +83,9 @@ body[data-phase="hold-low"] {
 }
 
 .shell {
-  width: min(100%, 620px);
+  width: min(calc(100vw - 2rem), 620px);
+  max-width: 100%;
+  margin-inline: auto;
   position: relative;
   z-index: 1;
 }
@@ -177,6 +149,7 @@ h1 {
 .visualizer {
   --scene-scale: 1;
   --scene-max-size: min(calc(84vw * 1.3), calc(430px * 1.3), 92vw);
+  width: 100%;
   display: grid;
   justify-items: center;
   align-content: end;
@@ -199,7 +172,7 @@ h1 {
 
 .scene {
   position: relative;
-  width: min(calc(84vw * var(--scene-scale)), calc(430px * var(--scene-scale)), 92vw);
+  width: min(100%, calc(84vw * var(--scene-scale)), calc(430px * var(--scene-scale)), 92vw);
   aspect-ratio: 1 / 1;
   border-radius: 26px;
   border: 1px solid var(--line);
@@ -640,24 +613,6 @@ h1 {
   display: none;
 }
 
-@keyframes drift-a {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    transform: translate(44px, 24px);
-  }
-}
-
-@keyframes drift-b {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    transform: translate(-38px, -26px);
-  }
-}
-
 @media (max-width: 560px) {
   .subhead {
     font-size: 0.78rem;
@@ -668,7 +623,7 @@ h1 {
   }
 
   .scene {
-    width: min(calc(88vw * var(--scene-scale)), calc(360px * var(--scene-scale)), 92vw);
+    width: min(100%, calc(88vw * var(--scene-scale)), calc(360px * var(--scene-scale)), 92vw);
     border-radius: 22px;
   }
 
@@ -727,6 +682,25 @@ h1 {
   }
 }
 
+@media (min-width: 900px) {
+  .shell {
+    width: calc(100vw - 2rem);
+    max-width: none;
+  }
+
+  .card {
+    min-height: calc(100vh - 2rem);
+  }
+
+  .visualizer {
+    --scene-max-size: min(calc(70vh * 1.3), calc(760px * 1.3), 90vw);
+  }
+
+  .scene {
+    width: min(100%, calc(70vh * var(--scene-scale)), calc(760px * var(--scene-scale)), 90vw);
+  }
+}
+
 @media (max-height: 780px) {
   body {
     place-items: start center;
@@ -734,11 +708,6 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body::before,
-  body::after {
-    animation: none;
-  }
-
   .instruction,
   .countdown,
   .quote-text,
