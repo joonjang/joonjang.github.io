@@ -795,11 +795,13 @@ function getCurrentPhaseTiming(now = performance.now()) {
 }
 
 function installAudioUnlock() {
-  const unlock = () => {
+  function removeUnlockListeners() {
     window.removeEventListener("pointerdown", unlock);
     window.removeEventListener("keydown", unlock);
     window.removeEventListener("touchstart", unlock);
+  }
 
+  function unlock() {
     if (!state.soundEnabled) {
       return;
     }
@@ -814,13 +816,19 @@ function installAudioUnlock() {
       playPhaseCue(phase.id, remaining);
     };
 
-    if (ctx.state === "suspended") {
-      ctx.resume().then(playCurrent).catch(() => {});
+    if (ctx.state === "suspended" || ctx.state === "interrupted") {
+      ctx.resume()
+        .then(() => {
+          playCurrent();
+          removeUnlockListeners();
+        })
+        .catch(() => {});
       return;
     }
 
     playCurrent();
-  };
+    removeUnlockListeners();
+  }
 
   window.addEventListener("pointerdown", unlock);
   window.addEventListener("keydown", unlock);
@@ -1171,7 +1179,7 @@ nodes.toggleSound.addEventListener("change", () => {
 
   const { phase, remaining } = getCurrentPhaseTiming();
 
-  if (ctx.state === "suspended") {
+  if (ctx.state === "suspended" || ctx.state === "interrupted") {
     ctx.resume()
       .then(() => {
         playPhaseCue(phase.id, remaining);
