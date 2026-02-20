@@ -512,13 +512,15 @@ h1 {
 .size-sound-toggle .sound-note {
   grid-column: 2;
   justify-self: center;
+  min-width: 0;
   margin: 0;
   font-size: 0.68rem;
   line-height: 1.15;
   color: var(--muted);
   letter-spacing: 0.01em;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .size-inline-label {

@@ -15,6 +15,7 @@ const quoteCascadeMaxIndent = 10;
 const quoteCommaCascadeMaxSegmentChars = 90;
 const quotePeriodCommaBlendMaxBalanceRatio = 0.55;
 const quoteMixedCascadeMaxSegmentChars = 125;
+const quoteCascadeMobileMaxWidth = 560;
 const protectedPeriodToken = "@@DOTNUM@@";
 const protectedCommaToken = "@@COMMANUM@@";
 const protectedHyphenToken = "@@HYPHEN@@";
@@ -103,6 +104,8 @@ const state = {
   pausedAt: null,
   rafId: null
 };
+
+const quoteCascadeMobileMediaQuery = window.matchMedia(`(max-width: ${quoteCascadeMobileMaxWidth}px)`);
 
 function parseStoredBoolean(value, fallback) {
   return typeof value === "boolean" ? value : fallback;
@@ -1366,6 +1369,10 @@ function splitQuoteForCascade(quoteText) {
   return [quoteText];
 }
 
+function shouldUseQuoteCascadeLayout() {
+  return !quoteCascadeMobileMediaQuery.matches;
+}
+
 function formatQuoteDisplayText(rawQuote) {
   const normalizedQuote = normalizeQuoteText(rawQuote);
   if (!normalizedQuote) {
@@ -1373,7 +1380,7 @@ function formatQuoteDisplayText(rawQuote) {
   }
 
   const segments = splitQuoteForCascade(normalizedQuote);
-  const isCascadeCandidate = segments.length >= 2;
+  const isCascadeCandidate = shouldUseQuoteCascadeLayout() && segments.length >= 2;
 
   if (!isCascadeCandidate) {
     return { text: `"${normalizedQuote}"`, cascaded: false };
@@ -1397,6 +1404,15 @@ function formatQuoteDisplayText(rawQuote) {
     text: cascadedLines.join("\n"),
     cascaded: true
   };
+}
+
+function rerenderCurrentQuoteTextForLayout() {
+  if (state.quoteIndex < 0 || state.quoteIndex >= state.quotes.length) {
+    return;
+  }
+
+  const currentQuote = state.quotes[state.quoteIndex];
+  renderQuoteText(currentQuote.quote, false);
 }
 
 function renderQuoteText(rawQuote, animate = true) {
@@ -1733,6 +1749,12 @@ nodes.quoteShuffle.addEventListener("click", () => {
     scheduleQuoteRefresh();
   }
 });
+
+if (typeof quoteCascadeMobileMediaQuery.addEventListener === "function") {
+  quoteCascadeMobileMediaQuery.addEventListener("change", rerenderCurrentQuoteTextForLayout);
+} else if (typeof quoteCascadeMobileMediaQuery.addListener === "function") {
+  quoteCascadeMobileMediaQuery.addListener(rerenderCurrentQuoteTextForLayout);
+}
 
 applyPersistedSettings();
 syncTimerConfig();
