@@ -1052,14 +1052,11 @@ function installAudioUnlock() {
       return;
     }
 
-    const { phase, remaining } = getCurrentPhaseTiming();
     if (ctx.state === "running") {
-      if (state.soundEnabled) {
-        playPhaseCue(phase.id, remaining);
-      }
       return;
     }
 
+    const { phase, remaining } = getCurrentPhaseTiming();
     resumeAudioContextIfNeeded(() => {
       if (state.soundEnabled) {
         playPhaseCue(phase.id, remaining);
