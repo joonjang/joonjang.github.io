@@ -5,7 +5,8 @@ const phases = [
   { id: "hold-low", instruction: "Hold", duration: 4000, from: 0.78, to: 0.78 }
 ];
 
-const quoteRefreshMs = 60000;
+const quoteRefreshMs = 300000;
+const quoteRefreshRevealMs = 10000;
 const holdReleaseMs = 240;
 const minSizePercent = 55;
 const maxSizePercent = 130;
@@ -14,6 +15,10 @@ const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
 const noiseLayerGainBoost = 11;
 const ambientNoiseGainBoost = 9.5;
 const settingsStorageKey = "breath.settings.v1";
+const defaultTimerPreset = "elapsed";
+const defaultCustomTimerMinutes = 15;
+const minCustomTimerMinutes = 1;
+const maxCustomTimerMinutes = 180;
 
 const nodes = {
   visualizer: document.getElementById("visualizer"),
@@ -30,6 +35,9 @@ const nodes = {
   quoteShuffle: document.getElementById("quote-shuffle"),
   sizeSlider: document.getElementById("size-slider"),
   sizeValue: document.getElementById("size-value"),
+  timerPreset: document.getElementById("timer-preset"),
+  timerCustomGroup: document.getElementById("timer-custom-group"),
+  timerCustomMinutes: document.getElementById("timer-custom-minutes"),
   startPause: document.getElementById("start-pause"),
   reset: document.getElementById("reset"),
   toggleInstruction: document.getElementById("toggle-instruction"),
@@ -48,6 +56,11 @@ const state = {
   phaseId: null,
   phaseStartedAt: performance.now(),
   sessionStartedAt: performance.now(),
+  timerPreset: defaultTimerPreset,
+  timerCustomMinutes: defaultCustomTimerMinutes,
+  sessionDurationMs: 0,
+  sessionTimerActive: false,
+  timerCompleted: false,
   quotes: [],
   quoteIndex: -1,
   quoteNextAt: 0,
@@ -74,6 +87,18 @@ function parseStoredBoolean(value, fallback) {
   return typeof value === "boolean" ? value : fallback;
 }
 
+function parseTimerPreset(value) {
+  if (value === "5" || value === "10" || value === "custom" || value === "elapsed") {
+    return value;
+  }
+
+  return defaultTimerPreset;
+}
+
+function isSessionTimerPreset(timerPreset) {
+  return timerPreset === "5" || timerPreset === "10" || timerPreset === "custom";
+}
+
 function loadPersistedSettings() {
   try {
     const rawValue = window.localStorage.getItem(settingsStorageKey);
@@ -93,6 +118,7 @@ function loadPersistedSettings() {
 }
 
 function applyPersistedSettings() {
+  nodes.timerPreset.value = defaultTimerPreset;
   const persisted = loadPersistedSettings();
   if (!persisted) {
     return;
@@ -110,10 +136,15 @@ function applyPersistedSettings() {
   nodes.toggleElapsed.checked = parseStoredBoolean(persisted.showElapsed, nodes.toggleElapsed.checked);
   nodes.toggleQuotes.checked = parseStoredBoolean(persisted.showQuotes, nodes.toggleQuotes.checked);
   nodes.quoteAutoToggle.checked = parseStoredBoolean(persisted.quoteAutoShuffle, nodes.quoteAutoToggle.checked);
+
+  const fallbackMinutes = Number(nodes.timerCustomMinutes.value) || defaultCustomTimerMinutes;
+  const storedCustomMinutes = sanitizeCustomTimerMinutes(persisted.timerCustomMinutes, fallbackMinutes);
+  nodes.timerCustomMinutes.value = String(storedCustomMinutes);
 }
 
 function collectCurrentSettings() {
   const rawSize = Number(nodes.sizeSlider.value);
+  const timerCustomMinutes = sanitizeCustomTimerMinutes(nodes.timerCustomMinutes.value, state.timerCustomMinutes);
   return {
     sizePercent: clamp(Math.round(Number.isFinite(rawSize) ? rawSize : 100), minSizePercent, maxSizePercent),
     soundEnabled: nodes.toggleSound.checked,
@@ -121,7 +152,8 @@ function collectCurrentSettings() {
     showCountdown: nodes.toggleCountdown.checked,
     showElapsed: nodes.toggleElapsed.checked,
     showQuotes: nodes.toggleQuotes.checked,
-    quoteAutoShuffle: nodes.quoteAutoToggle.checked
+    quoteAutoShuffle: nodes.quoteAutoToggle.checked,
+    timerCustomMinutes
   };
 }
 
@@ -137,11 +169,96 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function formatElapsed(ms) {
-  const totalSeconds = Math.floor(ms / 1000);
+function sanitizeCustomTimerMinutes(value, fallback = defaultCustomTimerMinutes) {
+  const parsedValue = Math.round(Number(value));
+  if (!Number.isFinite(parsedValue)) {
+    return clamp(Math.round(fallback), minCustomTimerMinutes, maxCustomTimerMinutes);
+  }
+
+  return clamp(parsedValue, minCustomTimerMinutes, maxCustomTimerMinutes);
+}
+
+function resolveSessionDurationMs(timerPreset, customTimerMinutes) {
+  if (timerPreset === "5") {
+    return 5 * 60 * 1000;
+  }
+
+  if (timerPreset === "10") {
+    return 10 * 60 * 1000;
+  }
+
+  if (timerPreset === "custom") {
+    return customTimerMinutes * 60 * 1000;
+  }
+
+  return 0;
+}
+
+function formatElapsedClock(ms) {
+  const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
   const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
   const seconds = (totalSeconds % 60).toString().padStart(2, "0");
   return `${minutes}:${seconds}`;
+}
+
+function formatCountdownClock(ms) {
+  const totalSeconds = Math.ceil(Math.max(0, ms) / 1000);
+  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+function getSessionTimerRemainingMs(now = performance.now()) {
+  const elapsed = now - state.sessionStartedAt;
+  return Math.max(0, state.sessionDurationMs - elapsed);
+}
+
+function updateSessionTimerDisplay(now = performance.now()) {
+  if (state.sessionTimerActive) {
+    nodes.elapsed.textContent = `Timer ${formatCountdownClock(getSessionTimerRemainingMs(now))}`;
+    return;
+  }
+
+  nodes.elapsed.textContent = `Elapsed ${formatElapsedClock(now - state.sessionStartedAt)}`;
+}
+
+function syncTimerConfig({ restartSession = false } = {}) {
+  const timerPreset = parseTimerPreset(nodes.timerPreset.value);
+  const customTimerMinutes = sanitizeCustomTimerMinutes(nodes.timerCustomMinutes.value, state.timerCustomMinutes);
+  const now = performance.now();
+
+  state.timerPreset = timerPreset;
+  state.timerCustomMinutes = customTimerMinutes;
+  state.sessionDurationMs = resolveSessionDurationMs(timerPreset, customTimerMinutes);
+
+  nodes.timerPreset.value = timerPreset;
+  nodes.timerCustomMinutes.value = String(customTimerMinutes);
+  const showCustomTimer = timerPreset === "custom";
+  nodes.timerCustomMinutes.disabled = !showCustomTimer;
+  nodes.timerCustomGroup.classList.toggle("is-hidden", !showCustomTimer);
+
+  if (!isSessionTimerPreset(timerPreset)) {
+    state.sessionTimerActive = false;
+    state.timerCompleted = false;
+  }
+
+  if (restartSession) {
+    state.phaseIndex = 0;
+    state.phaseStartedAt = now;
+    state.sessionStartedAt = now;
+    state.timerCompleted = false;
+    state.sessionTimerActive = false;
+    setPhaseTheme(phases[0].id);
+
+    if (isSessionTimerPreset(timerPreset) && state.running) {
+      pause();
+    }
+
+    if (!state.running) {
+      state.pausedAt = now;
+      render(now);
+    }
+  }
 }
 
 function setVisibility(toggleNode, targetNode) {
@@ -1048,21 +1165,25 @@ function syncQuoteControls() {
 function updateQuoteRefreshLabel() {
   if (state.quotes.length === 1) {
     nodes.quoteRefresh.textContent = "Single quote loaded";
+    nodes.quoteRefresh.classList.add("is-revealed");
     return;
   }
 
   if (!state.quoteAutoShuffle) {
     nodes.quoteRefresh.textContent = "Auto shuffle off";
+    nodes.quoteRefresh.classList.add("is-revealed");
     return;
   }
 
   if (state.quoteNextAt === 0) {
-    nodes.quoteRefresh.textContent = "Next quote in --s";
+    nodes.quoteRefresh.textContent = "Next quote in --:--";
+    nodes.quoteRefresh.classList.remove("is-revealed");
     return;
   }
 
-  const remainingSeconds = Math.max(0, Math.ceil((state.quoteNextAt - Date.now()) / 1000));
-  nodes.quoteRefresh.textContent = `Next quote in ${remainingSeconds}s`;
+  const remainingMs = Math.max(0, state.quoteNextAt - Date.now());
+  nodes.quoteRefresh.textContent = `Next quote in ${formatCountdownClock(remainingMs)}`;
+  nodes.quoteRefresh.classList.toggle("is-revealed", remainingMs <= quoteRefreshRevealMs);
 }
 
 function scheduleQuoteRefresh() {
@@ -1098,6 +1219,7 @@ async function loadQuotes() {
       state.quoteNextAt = 0;
       setTextWithFade(nodes.quoteText, "No quotes available.", false);
       nodes.quoteRefresh.textContent = "Quote timer unavailable";
+      nodes.quoteRefresh.classList.add("is-revealed");
       setTextWithFade(nodes.quoteAuthor, "", false);
       return;
     }
@@ -1111,6 +1233,7 @@ async function loadQuotes() {
     syncQuoteControls();
     setTextWithFade(nodes.quoteText, "Could not load quotes.", false);
     nodes.quoteRefresh.textContent = "Quote timer unavailable";
+    nodes.quoteRefresh.classList.add("is-revealed");
     setTextWithFade(nodes.quoteAuthor, "", false);
     console.error("Failed to load quotes:", error);
   }
@@ -1190,7 +1313,12 @@ function render(now) {
   nodes.core.style.setProperty("--core-scale", coreScale.toFixed(4));
   setTextWithFade(nodes.instruction, currentPhase.instruction, true);
   setTextWithFade(nodes.countdown, `${remainingSeconds}s`, true);
-  nodes.elapsed.textContent = `Elapsed ${formatElapsed(now - state.sessionStartedAt)}`;
+  updateSessionTimerDisplay(now);
+
+  if (state.sessionTimerActive && !state.timerCompleted && getSessionTimerRemainingMs(now) <= 0) {
+    state.timerCompleted = true;
+    pause();
+  }
 
   if (state.running) {
     state.rafId = requestAnimationFrame(render);
@@ -1221,9 +1349,24 @@ function resume() {
   }
 
   const now = performance.now();
-  const pausedDuration = now - state.pausedAt;
+  const pausedAt = Number.isFinite(state.pausedAt) ? state.pausedAt : now;
+  const pausedDuration = now - pausedAt;
   state.phaseStartedAt += pausedDuration;
-  state.sessionStartedAt += pausedDuration;
+
+  if (isSessionTimerPreset(state.timerPreset)) {
+    if (state.timerCompleted || !state.sessionTimerActive) {
+      state.sessionStartedAt = now;
+      state.timerCompleted = false;
+      state.sessionTimerActive = true;
+    } else {
+      state.sessionStartedAt += pausedDuration;
+    }
+  } else {
+    state.sessionStartedAt += pausedDuration;
+    state.sessionTimerActive = false;
+    state.timerCompleted = false;
+  }
+
   state.running = true;
   state.pausedAt = null;
   nodes.startPause.textContent = "Pause";
@@ -1241,6 +1384,11 @@ function reset() {
   state.phaseIndex = 0;
   state.phaseStartedAt = now;
   state.sessionStartedAt = now;
+  state.timerCompleted = false;
+  state.sessionTimerActive = state.running && isSessionTimerPreset(state.timerPreset);
+  if (!state.running) {
+    state.pausedAt = now;
+  }
   setPhaseTheme(phases[0].id);
 
   stopAllPhaseAudio();
@@ -1264,6 +1412,14 @@ nodes.startPause.addEventListener("click", () => {
 nodes.reset.addEventListener("click", reset);
 nodes.sizeSlider.addEventListener("input", (event) => {
   applySceneScale(event.target.value);
+  persistSettings();
+});
+nodes.timerPreset.addEventListener("change", () => {
+  syncTimerConfig({ restartSession: true });
+  persistSettings();
+});
+nodes.timerCustomMinutes.addEventListener("change", () => {
+  syncTimerConfig({ restartSession: nodes.timerPreset.value === "custom" });
   persistSettings();
 });
 nodes.toggleSound.addEventListener("change", () => {
@@ -1302,6 +1458,7 @@ nodes.quoteShuffle.addEventListener("click", () => {
 });
 
 applyPersistedSettings();
+syncTimerConfig();
 wireToggle(nodes.toggleInstruction, nodes.instruction);
 wireToggle(nodes.toggleCountdown, nodes.countdown);
 wireToggle(nodes.toggleElapsed, nodes.elapsed);
@@ -1312,5 +1469,7 @@ syncQuoteControls();
 applySceneScale(nodes.sizeSlider.value);
 persistSettings();
 setPhaseTheme(phases[state.phaseIndex].id);
+updateSessionTimerDisplay();
 loadQuotes();
+nodes.startPause.textContent = state.running ? "Pause" : "Start";
 state.rafId = requestAnimationFrame(render);

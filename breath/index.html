@@ -67,7 +67,7 @@
         <p id="quote-text" class="quote-text">Loading quote...</p>
         <p id="quote-author" class="quote-author"></p>
         <div class="quote-footer">
-          <p id="quote-refresh" class="quote-refresh">Next quote in --s</p>
+          <p id="quote-refresh" class="quote-refresh">Next quote in --:--</p>
           <div class="quote-controls">
             <label class="quote-auto">
               <input id="quote-auto-toggle" type="checkbox" checked>
@@ -80,6 +80,21 @@
 
       <section class="settings" aria-label="Options">
         <p class="settings-title">Options</p>
+        <div class="timer-row">
+          <label class="timer-label" for="timer-preset">Session Mode</label>
+          <div class="timer-controls">
+            <select id="timer-preset" aria-label="Session mode preset">
+              <option value="elapsed">Continuous</option>
+              <option value="5">5 min</option>
+              <option value="10">10 min</option>
+              <option value="custom">Custom</option>
+            </select>
+            <span id="timer-custom-group" class="timer-custom-group">
+              <input id="timer-custom-minutes" type="number" min="1" max="180" step="1" value="15" inputmode="numeric" aria-label="Custom timer minutes">
+              <span class="timer-unit">min</span>
+            </span>
+          </div>
+        </div>
         <div class="size-row">
           <div class="size-control">
             <div class="size-control-row">
@@ -91,14 +106,14 @@
           <label class="toggle-item size-sound-toggle"><span>Sound Cues</span><input id="toggle-sound" type="checkbox"></label>
         </div>
         <div class="toggles">
-          <label class="toggle-item"><span>Instruction</span><input id="toggle-instruction" type="checkbox" checked></label>
-          <label class="toggle-item"><span>Countdown</span><input id="toggle-countdown" type="checkbox" checked></label>
-          <label class="toggle-item"><span>Elapsed Time</span><input id="toggle-elapsed" type="checkbox" checked></label>
           <label class="toggle-item"><span>Quotes</span><input id="toggle-quotes" type="checkbox" checked></label>
+          <label class="toggle-item"><span>Countdown</span><input id="toggle-countdown" type="checkbox" checked></label>
+          <label class="toggle-item"><span>Session Timer</span><input id="toggle-elapsed" type="checkbox" checked></label>
+          <label class="toggle-item"><span>Instruction</span><input id="toggle-instruction" type="checkbox" checked></label>
         </div>
 
         <div class="controls">
-          <button id="start-pause" class="btn-primary" type="button">Pause</button>
+          <button id="start-pause" class="btn-primary" type="button">Start</button>
           <button id="reset" class="btn-ghost" type="button">Reset</button>
         </div>
       </section>

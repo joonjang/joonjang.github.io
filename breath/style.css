@@ -371,6 +371,14 @@ h1 {
   letter-spacing: 0.04em;
   color: var(--muted);
   white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.quote-refresh.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .quote-controls {
@@ -495,6 +503,83 @@ h1 {
   text-align: right;
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+.timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.72rem;
+  padding: 0.56rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.timer-label {
+  margin: 0;
+  font-size: 0.89rem;
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.timer-controls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.42rem;
+}
+
+.timer-custom-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+#timer-preset,
+#timer-custom-minutes {
+  border: 1px solid rgba(53, 93, 89, 0.34);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+#timer-preset {
+  padding: 0.36rem 0.42rem;
+  min-width: 6.2rem;
+  font-weight: 500;
+}
+
+#timer-custom-minutes {
+  width: 4.2rem;
+  padding: 0.36rem 0.42rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#timer-preset:focus-visible,
+#timer-custom-minutes:focus-visible {
+  outline: 2px solid var(--phase-strong);
+  outline-offset: 2px;
+}
+
+#timer-custom-minutes:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.timer-unit {
+  font-size: 0.76rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
 }
 
 .toggles {
@@ -652,6 +737,20 @@ h1 {
     font-size: 0.84rem;
     padding-inline: 0.6rem;
   }
+
+  .timer-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .timer-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  #timer-preset {
+    min-width: 0;
+  }
 }
 
 @media (max-width: 430px) {
@@ -712,6 +811,7 @@ h1 {
   .countdown,
   .quote-text,
   .quote-author,
+  .quote-refresh,
   .controls button,
   .toggle-item input,
   .toggle-item input::after,
