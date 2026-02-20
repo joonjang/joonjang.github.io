@@ -319,6 +319,15 @@ h1 {
   z-index: 1;
 }
 
+.quote-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: max-content;
+  max-width: calc(100% - 1.2rem);
+  align-self: center;
+}
+
 .quote-text {
   margin: 0;
   font-family: "Newsreader", serif;
@@ -327,6 +336,7 @@ h1 {
   color: var(--ink);
   overflow: visible;
   display: block;
+  width: 100%;
   padding-right: 0;
   padding-bottom: 0;
   text-align: center;
@@ -337,14 +347,22 @@ h1 {
   backface-visibility: hidden;
 }
 
+.quote-text.is-cascaded {
+  white-space: pre-line;
+  text-align: left;
+  display: block;
+  width: 100%;
+  max-width: none;
+}
+
 .quote-author {
   margin: 0;
   width: 100%;
   text-align: right;
   font-size: 0.83rem;
   letter-spacing: 0.02em;
-  color: var(--phase-strong);
-  transition: color 0.35s ease, opacity 0.24s ease;
+  color: var(--muted);
+  transition: opacity 0.24s ease;
   position: relative;
   z-index: 1;
   margin-bottom: 0;
@@ -369,7 +387,7 @@ h1 {
   margin: 0;
   font-size: 0.74rem;
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: rgba(98, 122, 121, 0.56);
   white-space: nowrap;
   opacity: 0;
   transform: translateY(4px);
@@ -697,8 +715,8 @@ h1 {
 }
 
 .btn-primary {
-  background: var(--phase);
-  border-color: var(--phase-strong);
+  background: var(--toggle-accent);
+  border-color: var(--toggle-accent);
   color: #ffffff;
 }
 

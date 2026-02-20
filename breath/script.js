@@ -6,7 +6,18 @@ const phases = [
 ];
 
 const quoteRefreshMs = 300000;
-const quoteRefreshRevealMs = 10000;
+const quoteRefreshCountdownMs = 10000;
+const quoteRefreshDisclaimerText = "Changes every 5 minutes.";
+const quoteCascadeMinSegmentChars = 3;
+const quoteCascadeInitialIndent = 4;
+const quoteCascadeIndentStep = 2;
+const quoteCascadeMaxIndent = 10;
+const quoteCommaCascadeMaxSegmentChars = 90;
+const quotePeriodCommaBlendMaxBalanceRatio = 0.55;
+const quoteMixedCascadeMaxSegmentChars = 125;
+const protectedPeriodToken = "@@DOTNUM@@";
+const protectedCommaToken = "@@COMMANUM@@";
+const protectedHyphenToken = "@@HYPHEN@@";
 const holdReleaseMs = 240;
 const minSizePercent = 55;
 const maxSizePercent = 130;
@@ -29,6 +40,7 @@ const masterGainBoost = isIOSSafari ? 1.7 : 1;
 const nodes = {
   visualizer: document.getElementById("visualizer"),
   scene: document.getElementById("scene"),
+  holdRing: document.getElementById("hold-ring"),
   core: document.getElementById("breath-core"),
   instruction: document.getElementById("instruction"),
   countdown: document.getElementById("countdown"),
@@ -57,6 +69,7 @@ const nodes = {
 const fadeTimers = new Map();
 const fadeAnimationFrames = new Map();
 const pendingFadeValues = new Map();
+const fadeTransitionTokens = new Map();
 
 const state = {
   phaseIndex: 0,
@@ -75,6 +88,7 @@ const state = {
   quoteRefreshTickerId: null,
   quoteAutoShuffle: true,
   soundEnabled: false,
+  soundPrimed: false,
   audioCtx: null,
   audioMaster: null,
   audioToneFilter: null,
@@ -139,7 +153,8 @@ function applyPersistedSettings() {
 
   nodes.toggleSound.checked = parseStoredBoolean(persisted.soundEnabled, nodes.toggleSound.checked);
   nodes.toggleInstruction.checked = parseStoredBoolean(persisted.showInstruction, nodes.toggleInstruction.checked);
-  nodes.toggleCountdown.checked = parseStoredBoolean(persisted.showCountdown, nodes.toggleCountdown.checked);
+  const persistedHoldTimer = persisted.showHoldTimer ?? persisted.showCountdown;
+  nodes.toggleCountdown.checked = parseStoredBoolean(persistedHoldTimer, nodes.toggleCountdown.checked);
   nodes.toggleElapsed.checked = parseStoredBoolean(persisted.showElapsed, nodes.toggleElapsed.checked);
   nodes.toggleQuotes.checked = parseStoredBoolean(persisted.showQuotes, nodes.toggleQuotes.checked);
   nodes.quoteAutoToggle.checked = parseStoredBoolean(persisted.quoteAutoShuffle, nodes.quoteAutoToggle.checked);
@@ -156,7 +171,7 @@ function collectCurrentSettings() {
     sizePercent: clamp(Math.round(Number.isFinite(rawSize) ? rawSize : 100), minSizePercent, maxSizePercent),
     soundEnabled: nodes.toggleSound.checked,
     showInstruction: nodes.toggleInstruction.checked,
-    showCountdown: nodes.toggleCountdown.checked,
+    showHoldTimer: nodes.toggleCountdown.checked,
     showElapsed: nodes.toggleElapsed.checked,
     showQuotes: nodes.toggleQuotes.checked,
     quoteAutoShuffle: nodes.quoteAutoToggle.checked,
@@ -272,12 +287,22 @@ function setVisibility(toggleNode, targetNode) {
   targetNode.classList.toggle("is-hidden", !toggleNode.checked);
 }
 
-function wireToggle(toggleNode, targetNode) {
+function wireToggle(toggleNode, ...targetNodes) {
+  if (targetNodes.length === 0) {
+    return;
+  }
+
+  const applyVisibility = () => {
+    targetNodes.forEach((targetNode) => {
+      setVisibility(toggleNode, targetNode);
+    });
+  };
+
   toggleNode.addEventListener("change", () => {
-    setVisibility(toggleNode, targetNode);
+    applyVisibility();
     persistSettings();
   });
-  setVisibility(toggleNode, targetNode);
+  applyVisibility();
 }
 
 function setPhaseTheme(phaseId) {
@@ -305,6 +330,7 @@ function ensureAudioContext() {
     state.ambientVoice = null;
     state.activeVoices = [];
     state.noiseBuffer = null;
+    state.soundPrimed = false;
   }
 
   if (!state.audioCtx) {
@@ -826,6 +852,7 @@ function playPhaseCue(phaseId, durationSeconds = 4) {
     return;
   }
 
+  state.soundPrimed = true;
   startAmbientBed();
 
   // Keep a light tail overlap for less robotic transitions.
@@ -1027,6 +1054,9 @@ function syncSoundControl() {
   nodes.toggleSound.checked = shouldEnableSound;
   nodes.toggleSound.disabled = false;
   state.soundEnabled = shouldEnableSound;
+  if (!shouldEnableSound) {
+    state.soundPrimed = false;
+  }
 }
 
 function syncSoundNoteVisibility() {
@@ -1045,23 +1075,44 @@ function getCurrentPhaseTiming(now = performance.now()) {
   return { phase, remaining };
 }
 
-function installAudioUnlock() {
-  function unlock() {
-    const ctx = ensureAudioContext();
-    if (!ctx) {
+function kickstartSoundCue({ force = false } = {}) {
+  if (!state.soundEnabled) {
+    return;
+  }
+
+  if (!force && state.soundPrimed) {
+    return;
+  }
+
+  const ctx = ensureAudioContext();
+  if (!ctx) {
+    return;
+  }
+
+  const startCue = () => {
+    if (!state.soundEnabled) {
       return;
     }
 
-    if (ctx.state === "running") {
+    if (!force && state.soundPrimed) {
       return;
     }
 
     const { phase, remaining } = getCurrentPhaseTiming();
-    resumeAudioContextIfNeeded(() => {
-      if (state.soundEnabled) {
-        playPhaseCue(phase.id, remaining);
-      }
-    });
+    playPhaseCue(phase.id, remaining);
+  };
+
+  if (ctx.state === "running") {
+    startCue();
+    return;
+  }
+
+  resumeAudioContextIfNeeded(startCue);
+}
+
+function installAudioUnlock() {
+  function unlock() {
+    kickstartSoundCue();
   }
 
   window.addEventListener("click", unlock);
@@ -1071,35 +1122,7 @@ function installAudioUnlock() {
   window.addEventListener("touchstart", unlock, { passive: true });
 }
 
-function setTextWithFade(node, value, animate = true) {
-  if (!animate) {
-    const existingTimer = fadeTimers.get(node);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-      fadeTimers.delete(node);
-    }
-
-    const existingAnimationFrame = fadeAnimationFrames.get(node);
-    if (existingAnimationFrame) {
-      cancelAnimationFrame(existingAnimationFrame);
-      fadeAnimationFrames.delete(node);
-    }
-
-    node.textContent = value;
-    node.classList.remove("is-fading");
-    pendingFadeValues.delete(node);
-    return;
-  }
-
-  const pendingValue = pendingFadeValues.get(node);
-  if (pendingValue === value || node.textContent === value) {
-    if (!fadeTimers.has(node) && !fadeAnimationFrames.has(node)) {
-      node.classList.remove("is-fading");
-      pendingFadeValues.delete(node);
-    }
-    return;
-  }
-
+function clearPendingFade(node) {
   const existingTimer = fadeTimers.get(node);
   if (existingTimer) {
     clearTimeout(existingTimer);
@@ -1111,7 +1134,43 @@ function setTextWithFade(node, value, animate = true) {
     cancelAnimationFrame(existingAnimationFrame);
     fadeAnimationFrames.delete(node);
   }
+}
 
+function nextFadeTransitionToken(node) {
+  const nextToken = (fadeTransitionTokens.get(node) || 0) + 1;
+  fadeTransitionTokens.set(node, nextToken);
+  return nextToken;
+}
+
+function setTextWithFade(node, value, animate = true) {
+  if (!animate) {
+    nextFadeTransitionToken(node);
+    clearPendingFade(node);
+    node.textContent = value;
+    node.classList.remove("is-fading");
+    pendingFadeValues.delete(node);
+    return;
+  }
+
+  const pendingValue = pendingFadeValues.get(node);
+  if (pendingValue === value) {
+    if (!fadeTimers.has(node) && !fadeAnimationFrames.has(node)) {
+      node.classList.remove("is-fading");
+      pendingFadeValues.delete(node);
+    }
+    return;
+  }
+
+  if (node.textContent === value) {
+    nextFadeTransitionToken(node);
+    clearPendingFade(node);
+    node.classList.remove("is-fading");
+    pendingFadeValues.delete(node);
+    return;
+  }
+
+  const transitionToken = nextFadeTransitionToken(node);
+  clearPendingFade(node);
   pendingFadeValues.set(node, value);
   node.classList.remove("is-fading");
   // Safari occasionally drops rapid opacity transitions without a reflow reset.
@@ -1119,8 +1178,16 @@ function setTextWithFade(node, value, animate = true) {
   node.classList.add("is-fading");
 
   const timer = setTimeout(() => {
+    if (fadeTransitionTokens.get(node) !== transitionToken) {
+      return;
+    }
+
     node.textContent = value;
     const frameId = requestAnimationFrame(() => {
+      if (fadeTransitionTokens.get(node) !== transitionToken) {
+        return;
+      }
+
       node.classList.remove("is-fading");
       pendingFadeValues.delete(node);
       fadeAnimationFrames.delete(node);
@@ -1149,6 +1216,210 @@ function pickNextQuoteIndex() {
   return nextIndex;
 }
 
+function normalizeQuoteText(rawQuote) {
+  return String(rawQuote || "").replace(/\s+/g, " ").trim();
+}
+
+function getCascadeSegmentCoreLength(segment) {
+  return segment.replace(/[.,;:!?…]+/g, "").trim().length;
+}
+
+function mergeShortCascadeSegments(segments) {
+  if (segments.length <= 1) {
+    return segments;
+  }
+
+  const mergedSegments = [];
+  segments.forEach((segment) => {
+    if (mergedSegments.length === 0) {
+      mergedSegments.push(segment);
+      return;
+    }
+
+    if (getCascadeSegmentCoreLength(segment) < quoteCascadeMinSegmentChars) {
+      const previous = mergedSegments[mergedSegments.length - 1];
+      mergedSegments[mergedSegments.length - 1] = `${previous} ${segment}`.replace(/\s+/g, " ").trim();
+      return;
+    }
+
+    mergedSegments.push(segment);
+  });
+
+  if (mergedSegments.length > 1 && getCascadeSegmentCoreLength(mergedSegments[0]) < quoteCascadeMinSegmentChars) {
+    mergedSegments[1] = `${mergedSegments[0]} ${mergedSegments[1]}`.replace(/\s+/g, " ").trim();
+    mergedSegments.shift();
+  }
+
+  return mergedSegments;
+}
+
+function canUseCommaCascade(segments) {
+  if (segments.length < 2) {
+    return false;
+  }
+
+  return segments.every((segment) => getCascadeSegmentCoreLength(segment) <= quoteCommaCascadeMaxSegmentChars);
+}
+
+function canUsePeriodCascade(segments) {
+  if (segments.length < 2) {
+    return false;
+  }
+
+  const validCoreLengths = segments
+    .map((segment) => getCascadeSegmentCoreLength(segment))
+    .filter((length) => length > 0);
+
+  if (validCoreLengths.length < 2) {
+    return false;
+  }
+
+  return true;
+}
+
+function shouldBlendPeriodAndComma(periodSegments) {
+  if (periodSegments.length !== 2) {
+    return false;
+  }
+
+  const coreLengths = periodSegments
+    .map((segment) => getCascadeSegmentCoreLength(segment))
+    .filter((length) => length > 0);
+
+  if (coreLengths.length !== 2) {
+    return false;
+  }
+
+  const longest = Math.max(...coreLengths);
+  const shortest = Math.min(...coreLengths);
+  return (shortest / longest) <= quotePeriodCommaBlendMaxBalanceRatio;
+}
+
+function canUseMixedPeriodCommaCascade(segments, periodSegments) {
+  if (segments.length <= periodSegments.length || segments.length < 3) {
+    return false;
+  }
+
+  const mixedCoreLengths = segments
+    .map((segment) => getCascadeSegmentCoreLength(segment))
+    .filter((length) => length > 0);
+  const periodCoreLengths = periodSegments
+    .map((segment) => getCascadeSegmentCoreLength(segment))
+    .filter((length) => length > 0);
+
+  if (mixedCoreLengths.length < 3 || periodCoreLengths.length < 2) {
+    return false;
+  }
+
+  const longestMixed = Math.max(...mixedCoreLengths);
+  const longestPeriod = Math.max(...periodCoreLengths);
+
+  return longestMixed < longestPeriod
+    && longestMixed <= quoteMixedCascadeMaxSegmentChars;
+}
+
+function splitQuoteForCascade(quoteText) {
+  const protectedQuoteText = quoteText
+    .replace(/\.(?=\s*\d)/g, protectedPeriodToken)
+    .replace(/(\d),(?=\s*\d)/g, `$1${protectedCommaToken}`)
+    .replaceAll("-", protectedHyphenToken);
+  const normalizeSegments = (segments) => segments
+    .map((segment) => segment
+      .replaceAll(protectedPeriodToken, ".")
+      .replaceAll(protectedCommaToken, ",")
+      .replaceAll(protectedHyphenToken, "-")
+      .trim())
+    .filter(Boolean);
+
+  const periodSegments = mergeShortCascadeSegments(
+    normalizeSegments(protectedQuoteText.match(/[^.]+(?:\.+)?/g) || [])
+  );
+  if (canUsePeriodCascade(periodSegments)) {
+    if (protectedQuoteText.includes(",") && shouldBlendPeriodAndComma(periodSegments)) {
+      const mixedPeriodCommaSegments = mergeShortCascadeSegments(
+        normalizeSegments(protectedQuoteText.match(/[^.,]+(?:[.,]+)?/g) || [])
+      );
+      if (
+        canUseMixedPeriodCommaCascade(mixedPeriodCommaSegments, periodSegments)
+      ) {
+        return mixedPeriodCommaSegments;
+      }
+    }
+
+    return periodSegments;
+  }
+
+  const strongPunctuationSegments = mergeShortCascadeSegments(
+    normalizeSegments(protectedQuoteText.match(/[^;:!?…]+(?:[;:!?…]+)?/g) || [])
+  );
+  if (strongPunctuationSegments.length >= 2) {
+    return strongPunctuationSegments;
+  }
+
+  const commaSegments = mergeShortCascadeSegments(
+    normalizeSegments(protectedQuoteText.match(/[^,]+(?:,+)?/g) || [])
+  );
+  if (canUseCommaCascade(commaSegments)) {
+    return commaSegments;
+  }
+
+  return [quoteText];
+}
+
+function formatQuoteDisplayText(rawQuote) {
+  const normalizedQuote = normalizeQuoteText(rawQuote);
+  if (!normalizedQuote) {
+    return { text: "\"\"", cascaded: false };
+  }
+
+  const segments = splitQuoteForCascade(normalizedQuote);
+  const isCascadeCandidate = segments.length >= 2;
+
+  if (!isCascadeCandidate) {
+    return { text: `"${normalizedQuote}"`, cascaded: false };
+  }
+
+  const cascadedLines = segments.map((segment, index) => {
+    const indentSize = index === 0
+      ? 0
+      : Math.min(
+        quoteCascadeInitialIndent + ((index - 1) * quoteCascadeIndentStep),
+        quoteCascadeMaxIndent
+      );
+    const indent = "\u00A0".repeat(indentSize);
+    return `${indent}${segment}`;
+  });
+
+  cascadedLines[0] = `"${cascadedLines[0]}`;
+  cascadedLines[cascadedLines.length - 1] = `${cascadedLines[cascadedLines.length - 1]}"`;
+
+  return {
+    text: cascadedLines.join("\n"),
+    cascaded: true
+  };
+}
+
+function renderQuoteText(rawQuote, animate = true) {
+  const { text, cascaded } = formatQuoteDisplayText(rawQuote);
+  const shouldAnimate = animate
+    && (nodes.quoteText.classList.contains("is-cascaded") === cascaded);
+  nodes.quoteText.classList.toggle("is-cascaded", cascaded);
+  setTextWithFade(nodes.quoteText, text, shouldAnimate);
+  return shouldAnimate;
+}
+
+function renderQuoteStatusText(value, animate = false) {
+  nodes.quoteText.classList.remove("is-cascaded");
+  setTextWithFade(nodes.quoteText, value, animate);
+}
+
+function hasActiveQuoteFade() {
+  return fadeTimers.has(nodes.quoteText)
+    || fadeTimers.has(nodes.quoteAuthor)
+    || fadeAnimationFrames.has(nodes.quoteText)
+    || fadeAnimationFrames.has(nodes.quoteAuthor);
+}
+
 function renderQuote(animate = true) {
   const nextIndex = pickNextQuoteIndex();
   if (nextIndex < 0) {
@@ -1157,8 +1428,9 @@ function renderQuote(animate = true) {
 
   const nextQuote = state.quotes[nextIndex];
   state.quoteIndex = nextIndex;
-  setTextWithFade(nodes.quoteText, `"${nextQuote.quote}"`, animate);
-  setTextWithFade(nodes.quoteAuthor, `- ${nextQuote.author}`, animate);
+  const baseShouldAnimate = animate && !hasActiveQuoteFade();
+  const appliedShouldAnimate = renderQuoteText(nextQuote.quote, baseShouldAnimate);
+  setTextWithFade(nodes.quoteAuthor, `- ${nextQuote.author}`, appliedShouldAnimate);
 }
 
 function clearQuoteTimers() {
@@ -1181,27 +1453,21 @@ function syncQuoteControls() {
 }
 
 function updateQuoteRefreshLabel() {
-  if (state.quotes.length === 1) {
-    nodes.quoteRefresh.textContent = "Single quote loaded";
-    nodes.quoteRefresh.classList.add("is-revealed");
-    return;
-  }
-
   if (!state.quoteAutoShuffle) {
-    nodes.quoteRefresh.textContent = "Auto shuffle off";
-    nodes.quoteRefresh.classList.add("is-revealed");
-    return;
-  }
-
-  if (state.quoteNextAt === 0) {
-    nodes.quoteRefresh.textContent = "Next quote in --:--";
+    nodes.quoteRefresh.textContent = "";
     nodes.quoteRefresh.classList.remove("is-revealed");
     return;
   }
 
-  const remainingMs = Math.max(0, state.quoteNextAt - Date.now());
-  nodes.quoteRefresh.textContent = `Next quote in ${formatCountdownClock(remainingMs)}`;
-  nodes.quoteRefresh.classList.toggle("is-revealed", remainingMs <= quoteRefreshRevealMs);
+  const remainingMs = state.quoteNextAt > 0 ? Math.max(0, state.quoteNextAt - Date.now()) : quoteRefreshMs;
+  if (remainingMs <= quoteRefreshCountdownMs) {
+    const remainingSeconds = Math.max(1, Math.ceil(remainingMs / 1000));
+    nodes.quoteRefresh.textContent = `Quote will change in ${remainingSeconds}s`;
+  } else {
+    nodes.quoteRefresh.textContent = quoteRefreshDisclaimerText;
+  }
+
+  nodes.quoteRefresh.classList.add("is-revealed");
 }
 
 function scheduleQuoteRefresh() {
@@ -1235,7 +1501,7 @@ async function loadQuotes() {
     if (state.quotes.length === 0) {
       clearQuoteTimers();
       state.quoteNextAt = 0;
-      setTextWithFade(nodes.quoteText, "No quotes available.", false);
+      renderQuoteStatusText("No quotes available.", false);
       nodes.quoteRefresh.textContent = "Quote timer unavailable";
       nodes.quoteRefresh.classList.add("is-revealed");
       setTextWithFade(nodes.quoteAuthor, "", false);
@@ -1249,7 +1515,7 @@ async function loadQuotes() {
     state.quoteNextAt = 0;
     state.quotes = [];
     syncQuoteControls();
-    setTextWithFade(nodes.quoteText, "Could not load quotes.", false);
+    renderQuoteStatusText("Could not load quotes.", false);
     nodes.quoteRefresh.textContent = "Quote timer unavailable";
     nodes.quoteRefresh.classList.add("is-revealed");
     setTextWithFade(nodes.quoteAuthor, "", false);
@@ -1444,20 +1710,13 @@ nodes.toggleSound.addEventListener("change", () => {
   state.soundEnabled = nodes.toggleSound.checked;
   persistSettings();
   if (!state.soundEnabled) {
+    state.soundPrimed = false;
     stopAllPhaseAudio();
     stopAmbientBed();
     return;
   }
 
-  const ctx = ensureAudioContext();
-  if (!ctx) {
-    return;
-  }
-
-  const { phase, remaining } = getCurrentPhaseTiming();
-  resumeAudioContextIfNeeded(() => {
-    playPhaseCue(phase.id, remaining);
-  });
+  kickstartSoundCue({ force: true });
 });
 nodes.quoteAutoToggle.addEventListener("change", () => {
   state.quoteAutoShuffle = nodes.quoteAutoToggle.checked;
@@ -1477,13 +1736,14 @@ nodes.quoteShuffle.addEventListener("click", () => {
 
 applyPersistedSettings();
 syncTimerConfig();
-wireToggle(nodes.toggleInstruction, nodes.instruction);
-wireToggle(nodes.toggleCountdown, nodes.countdown);
+wireToggle(nodes.toggleInstruction, nodes.instruction, nodes.countdown);
+wireToggle(nodes.toggleCountdown, nodes.holdRing);
 wireToggle(nodes.toggleElapsed, nodes.elapsed);
 wireToggle(nodes.toggleQuotes, nodes.quoteCard);
 syncSoundControl();
 syncSoundNoteVisibility();
 installAudioUnlock();
+kickstartSoundCue();
 syncQuoteControls();
 applySceneScale(nodes.sizeSlider.value);
 persistSettings();
