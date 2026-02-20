@@ -19,6 +19,12 @@ const defaultTimerPreset = "elapsed";
 const defaultCustomTimerMinutes = 15;
 const minCustomTimerMinutes = 1;
 const maxCustomTimerMinutes = 180;
+const phaseWooshGainScale = 0.45;
+const instrumentGainScale = 1.75;
+const isIOSSafari = /iPad|iPhone|iPod/.test(window.navigator.userAgent)
+  && /WebKit/i.test(window.navigator.userAgent)
+  && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(window.navigator.userAgent);
+const masterGainBoost = isIOSSafari ? 1.7 : 1;
 
 const nodes = {
   visualizer: document.getElementById("visualizer"),
@@ -33,6 +39,7 @@ const nodes = {
   quoteAuthor: document.getElementById("quote-author"),
   quoteAutoToggle: document.getElementById("quote-auto-toggle"),
   quoteShuffle: document.getElementById("quote-shuffle"),
+  soundNote: document.getElementById("sound-note"),
   sizeSlider: document.getElementById("size-slider"),
   sizeValue: document.getElementById("size-value"),
   timerPreset: document.getElementById("timer-preset"),
@@ -306,7 +313,7 @@ function ensureAudioContext() {
 
   if (!state.audioMaster) {
     state.audioMaster = state.audioCtx.createGain();
-    state.audioMaster.gain.value = 2.8;
+    state.audioMaster.gain.value = 2.8 * masterGainBoost;
   }
 
   if (!state.audioToneFilter) {
@@ -907,7 +914,7 @@ function playPhaseCue(phaseId, durationSeconds = 4) {
 
   scheduleNoisePad(ctx, {
     duration,
-    peak: profile.windPeak,
+    peak: profile.windPeak * phaseWooshGainScale,
     sustain: 0.94,
     attack: 0.72,
     release: 3.1,
@@ -922,7 +929,7 @@ function playPhaseCue(phaseId, durationSeconds = 4) {
   scheduleNoisePad(ctx, {
     duration: Math.max(0.8, duration * 0.96),
     startOffset: 0.04,
-    peak: profile.shimmerPeak,
+    peak: profile.shimmerPeak * phaseWooshGainScale,
     sustain: 0.88,
     attack: 0.56,
     release: 2.6,
@@ -945,7 +952,7 @@ function playPhaseCue(phaseId, durationSeconds = 4) {
       startCutoff: profile.toneCutoff,
       endCutoff: profile.toneCutoff,
       filterType: "lowpass",
-      peak: profile.tonePeak,
+      peak: profile.tonePeak * instrumentGainScale,
       sustain: 0.92,
       harmonicRatio: 2,
       harmonicMix: 0.004,
@@ -974,7 +981,7 @@ function playPhaseCue(phaseId, durationSeconds = 4) {
         startCutoff: profile.toneCutoff * 0.96,
         endCutoff: profile.toneCutoff * 0.96,
         filterType: "lowpass",
-        peak: profile.harmonyPeak,
+        peak: profile.harmonyPeak * instrumentGainScale,
         sustain: 0.92,
         harmonicRatio: 2,
         harmonicMix: 0.003,
@@ -997,7 +1004,7 @@ function playPhaseCue(phaseId, durationSeconds = 4) {
     scheduleTempleStrike(ctx, {
       duration: Math.min(3.4, duration),
       freq: profile.bowlFreq,
-      peak: profile.bowlPeak,
+      peak: profile.bowlPeak * instrumentGainScale,
       startOffset: profile.bowlOffset
     });
   }
@@ -1022,6 +1029,15 @@ function syncSoundControl() {
   state.soundEnabled = shouldEnableSound;
 }
 
+function syncSoundNoteVisibility() {
+  if (!nodes.soundNote) {
+    return;
+  }
+
+  const isIPhone = /iPhone/i.test(window.navigator.userAgent);
+  nodes.soundNote.classList.toggle("is-hidden", !isIPhone);
+}
+
 function getCurrentPhaseTiming(now = performance.now()) {
   const phase = phases[state.phaseIndex] || phases[0];
   const elapsed = now - state.phaseStartedAt;
@@ -1036,11 +1052,14 @@ function installAudioUnlock() {
       return;
     }
 
-    if (ctx.state !== "suspended" && ctx.state !== "interrupted") {
+    const { phase, remaining } = getCurrentPhaseTiming();
+    if (ctx.state === "running") {
+      if (state.soundEnabled) {
+        playPhaseCue(phase.id, remaining);
+      }
       return;
     }
 
-    const { phase, remaining } = getCurrentPhaseTiming();
     resumeAudioContextIfNeeded(() => {
       if (state.soundEnabled) {
         playPhaseCue(phase.id, remaining);
@@ -1048,8 +1067,10 @@ function installAudioUnlock() {
     });
   }
 
+  window.addEventListener("click", unlock);
   window.addEventListener("pointerdown", unlock);
   window.addEventListener("keydown", unlock);
+  window.addEventListener("touchend", unlock, { passive: true });
   window.addEventListener("touchstart", unlock, { passive: true });
 }
 
@@ -1464,6 +1485,7 @@ wireToggle(nodes.toggleCountdown, nodes.countdown);
 wireToggle(nodes.toggleElapsed, nodes.elapsed);
 wireToggle(nodes.toggleQuotes, nodes.quoteCard);
 syncSoundControl();
+syncSoundNoteVisibility();
 installAudioUnlock();
 syncQuoteControls();
 applySceneScale(nodes.sizeSlider.value);

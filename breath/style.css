@@ -475,6 +475,32 @@ h1 {
 
 .size-sound-toggle {
   min-height: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 0.52rem;
+  align-items: center;
+}
+
+.size-sound-toggle .sound-label {
+  grid-column: 1;
+  white-space: nowrap;
+}
+
+.size-sound-toggle input {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.size-sound-toggle .sound-note {
+  grid-column: 2;
+  justify-self: center;
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.15;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .size-inline-label {
@@ -739,17 +765,24 @@ h1 {
   }
 
   .timer-row {
-    align-items: stretch;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    gap: 0.55rem;
+  }
+
+  .timer-label {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .timer-controls {
-    width: 100%;
-    justify-content: flex-start;
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
   }
 
   #timer-preset {
-    min-width: 0;
+    min-width: 5.6rem;
   }
 }
 
@@ -761,6 +794,10 @@ h1 {
 
   .size-sound-toggle {
     min-height: auto;
+  }
+
+  .sound-note {
+    font-size: 0.66rem;
   }
 
   .toggles {
