@@ -1672,8 +1672,10 @@ function resume() {
   nodes.startPause.textContent = "Pause";
 
   if (state.soundEnabled) {
-    const { phase, remaining } = getCurrentPhaseTiming(now);
-    playPhaseCue(phase.id, remaining);
+    resumeAudioContextIfNeeded(() => {
+      const { phase, remaining } = getCurrentPhaseTiming();
+      playPhaseCue(phase.id, remaining);
+    });
   }
 
   state.rafId = requestAnimationFrame(render);
@@ -1681,22 +1683,28 @@ function resume() {
 
 function reset() {
   const now = performance.now();
+
+  if (state.running) {
+    pause();
+  }
+
+  if (state.rafId !== null) {
+    cancelAnimationFrame(state.rafId);
+    state.rafId = null;
+  }
+
+  state.running = false;
+  state.pausedAt = now;
   state.phaseIndex = 0;
   state.phaseStartedAt = now;
   state.sessionStartedAt = now;
   state.timerCompleted = false;
-  state.sessionTimerActive = state.running && isSessionTimerPreset(state.timerPreset);
-  if (!state.running) {
-    state.pausedAt = now;
-  }
+  state.sessionTimerActive = false;
+  nodes.startPause.textContent = "Start";
   setPhaseTheme(phases[0].id);
 
   stopAllPhaseAudio();
-  if (state.soundEnabled) {
-    playPhaseCue(phases[0].id, phases[0].duration / 1000);
-  } else {
-    stopAmbientBed();
-  }
+  stopAmbientBed();
 
   render(now);
 }
