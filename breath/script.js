@@ -142,6 +142,7 @@ function loadPersistedSettings() {
 }
 
 function applyPersistedSettings() {
+  nodes.toggleSound.checked = false;
   nodes.timerPreset.value = defaultTimerPreset;
   const persisted = loadPersistedSettings();
   if (!persisted) {
@@ -154,7 +155,6 @@ function applyPersistedSettings() {
     nodes.sizeSlider.value = String(normalizedSize);
   }
 
-  nodes.toggleSound.checked = parseStoredBoolean(persisted.soundEnabled, nodes.toggleSound.checked);
   nodes.toggleInstruction.checked = parseStoredBoolean(persisted.showInstruction, nodes.toggleInstruction.checked);
   const persistedHoldTimer = persisted.showHoldTimer ?? persisted.showCountdown;
   nodes.toggleCountdown.checked = parseStoredBoolean(persistedHoldTimer, nodes.toggleCountdown.checked);
@@ -172,7 +172,6 @@ function collectCurrentSettings() {
   const timerCustomMinutes = sanitizeCustomTimerMinutes(nodes.timerCustomMinutes.value, state.timerCustomMinutes);
   return {
     sizePercent: clamp(Math.round(Number.isFinite(rawSize) ? rawSize : 100), minSizePercent, maxSizePercent),
-    soundEnabled: nodes.toggleSound.checked,
     showInstruction: nodes.toggleInstruction.checked,
     showHoldTimer: nodes.toggleCountdown.checked,
     showElapsed: nodes.toggleElapsed.checked,
